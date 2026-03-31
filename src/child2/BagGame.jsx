@@ -4,6 +4,8 @@ import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
 import useDragDrop from '../hooks/useDragDrop';
+import { startBGM, stopBGM } from './utils/bgm';
+import MuteButton from './utils/MuteButton';
 
 const ITEMS = [
   { name: '책', emoji: '📖', needed: true },
@@ -32,6 +34,8 @@ export default function BagGame({ onBack }) {
   const [complete, setComplete] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [celebMode, setCelebMode] = useState(null);
+
+  useEffect(() => { startBGM(); return () => stopBGM(); }, []);
 
   const { makeDragProps, makeDropProps, dragging, ghostStyle, containerProps, nearZone } = useDragDrop({
     onDrop: (itemName, zoneId) => {
@@ -81,6 +85,7 @@ export default function BagGame({ onBack }) {
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }} {...containerProps}>
       <CelebrationOverlay mode={celebMode} score={packed.length} onDone={() => setCelebMode(null)} />
+      <MuteButton />
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>

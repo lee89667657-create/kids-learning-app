@@ -4,6 +4,8 @@ import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
 import useDragDrop from '../hooks/useDragDrop';
+import { startBGM, stopBGM } from './utils/bgm';
+import MuteButton from './utils/MuteButton';
 
 const ANIMALS = [
   { name: '강아지', emoji: '🐕' }, { name: '고양이', emoji: '🐱' },
@@ -356,10 +358,13 @@ export default function ShadowMatch({ onBack }) {
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
 
+  useEffect(() => { startBGM(); return () => stopBGM(); }, []);
+
   const bgColor = stage === 2 ? '#FFF9F0' : '#FFF9F0';
 
   return (
     <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: bgColor, padding: '2vh 3vw', overflow: 'hidden' }}>
+      <MuteButton />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw,28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
         <div style={{ display: 'flex', gap: '1vw', alignItems: 'center' }}>

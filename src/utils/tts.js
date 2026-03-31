@@ -121,11 +121,30 @@ export function speak(text, options = {}) {
   }, 150);
 }
 
+// BGM ducking callbacks — set by bgm.js to avoid circular imports
+let _duckFn = null;
+let _unduckFn = null;
+
+export function setBGMDuckCallbacks(duck, unduck) {
+  _duckFn = duck;
+  _unduckFn = unduck;
+}
+
 /**
  * speak for 준우 (child2) — higher pitch, slower, cuter
+ * Ducks BGM while speaking
  */
 export function speakCute(text, options = {}) {
-  speak(text, { rate: 0.8, pitch: 1.3, ...options });
+  _duckFn?.();
+  speak(text, {
+    rate: 0.8,
+    pitch: 1.3,
+    ...options,
+    onEnd: () => {
+      _unduckFn?.();
+      options.onEnd?.();
+    },
+  });
 }
 
 /**

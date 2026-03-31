@@ -3,6 +3,8 @@ import { addScore } from '../utils/storage';
 import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, playFanfare } from './utils/celebration';
+import { startBGM, stopBGM } from './utils/bgm';
+import MuteButton from './utils/MuteButton';
 
 // Levels: arrays of waypoints the path must follow
 // Coordinates in 0-100 space
@@ -44,6 +46,8 @@ export default function PathGame({ onBack }) {
   const [celebMode, setCelebMode] = useState(null);
   const isDrawing = useRef(false);
   const lastPos = useRef(null);
+
+  useEffect(() => { startBGM(); return () => stopBGM(); }, []);
 
   const lv = LEVELS[level];
   const startPt = lv.points[0];
@@ -181,6 +185,7 @@ export default function PathGame({ onBack }) {
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
       <CelebrationOverlay mode={celebMode} score={level + 1} onDone={() => setCelebMode(null)} />
+      <MuteButton />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>

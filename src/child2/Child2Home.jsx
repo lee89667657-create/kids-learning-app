@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { speakCute as speak } from '../utils/tts';
+import { startBGM, stopBGM, playDrumroll } from './utils/bgm';
+import MuteButton from './utils/MuteButton';
 
 const BALLS = [
   { id: 'compare', emoji: '📏', label: '비교 게임', color: '#FFD54F', tts: '비교 게임이 나왔어요!' },
@@ -49,6 +51,8 @@ export default function Child2Home({ onNavigate, onBack }) {
   const [progress, setProgress] = useState(0); // 0~1 rotation progress
   const [sparkles, setSparkles] = useState([]);
   const [hintSpoken, setHintSpoken] = useState(false);
+
+  useEffect(() => { startBGM(); return () => stopBGM(); }, []);
 
   const isDragging = useRef(false);
   const prevAngle = useRef(0);
@@ -125,6 +129,7 @@ export default function Child2Home({ onNavigate, onBack }) {
   }
 
   const startDispense = useCallback(() => {
+    playDrumroll();
     setPhase('cranking');
 
     setTimeout(() => setPhase('mixing'), 400);
@@ -197,6 +202,7 @@ export default function Child2Home({ onNavigate, onBack }) {
       height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
+      <MuteButton />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>

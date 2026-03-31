@@ -3,6 +3,8 @@ import { addScore } from '../utils/storage';
 import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import { startBGM, stopBGM } from './utils/bgm';
+import MuteButton from './utils/MuteButton';
 
 // ─── Problem Data ───
 // Each category has: question, attribute, pairs with SVG renderers
@@ -172,6 +174,8 @@ export default function CompareGame({ onBack }) {
   const [celebMode, setCelebMode] = useState(null);
   const timerRef = useRef(null);
 
+  useEffect(() => { startBGM(); return () => stopBGM(); }, []);
+
   useEffect(() => {
     setTimeout(() => speak(problem.category.question), 400);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
@@ -304,6 +308,7 @@ export default function CompareGame({ onBack }) {
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
       <CelebrationOverlay mode={celebMode} score={stars} onDone={() => setCelebMode(null)} />
+      <MuteButton />
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
