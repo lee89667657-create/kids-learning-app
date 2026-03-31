@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { addScore } from '../utils/storage';
 
 const ANIMALS = [
-  { name: '강아지', emoji: '🐕', silhouette: 'M25,70 Q30,30 50,25 Q70,30 75,70 Q50,80 25,70Z' },
-  { name: '고양이', emoji: '🐱', silhouette: 'M30,75 L25,35 L35,20 L40,35 L60,35 L65,20 L75,35 L70,75Z' },
-  { name: '토끼', emoji: '🐰', silhouette: 'M35,80 L30,45 L35,10 L42,35 L58,35 L65,10 L70,45 L65,80Z' },
-  { name: '코끼리', emoji: '🐘', silhouette: 'M20,75 L20,35 Q25,20 45,25 L55,25 Q75,20 80,35 L80,75 L65,75 L65,55 Q50,70 35,55 L35,75Z' },
-  { name: '기린', emoji: '🦒', silhouette: 'M40,80 L35,50 L38,15 L45,10 L52,15 L55,30 L65,50 L60,80Z' },
-  { name: '펭귄', emoji: '🐧', silhouette: 'M35,80 L30,50 Q25,35 35,25 Q50,15 65,25 Q75,35 70,50 L65,80Z' },
-  { name: '곰', emoji: '🐻', silhouette: 'M25,75 L22,40 Q20,25 30,20 Q40,15 50,20 Q60,15 70,20 Q80,25 78,40 L75,75Z' },
-  { name: '사자', emoji: '🦁', silhouette: 'M20,70 Q15,40 25,25 Q35,10 50,15 Q65,10 75,25 Q85,40 80,70 Q50,85 20,70Z' },
+  { name: '강아지', emoji: '🐕' },
+  { name: '고양이', emoji: '🐱' },
+  { name: '토끼', emoji: '🐰' },
+  { name: '코끼리', emoji: '🐘' },
+  { name: '기린', emoji: '🦒' },
+  { name: '펭귄', emoji: '🐧' },
+  { name: '곰', emoji: '🐻' },
+  { name: '사자', emoji: '🦁' },
 ];
 
 function speak(text) {
@@ -94,16 +94,20 @@ export default function ShadowMatch({ onBack }) {
 
       {/* Main: shadow + choices */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5vw', minHeight: 0 }}>
-        {/* Shadow */}
+        {/* Shadow: emoji with brightness(0) = black silhouette */}
         <div style={{
-          width: 'min(30vw, 30vh)', height: 'min(30vw, 30vh)',
+          width: 'min(35vw, 35vh)', height: 'min(35vw, 35vh)',
           backgroundColor: '#F5F0E8', borderRadius: 'min(3vw, 28px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
         }}>
-          <svg viewBox="0 0 100 100" style={{ width: '80%', height: '80%' }}>
-            <path d={round.answer.silhouette} fill="#3E3E3E" />
-          </svg>
+          <span style={{
+            fontSize: 'min(20vw, 20vh)',
+            filter: 'brightness(0)',
+            opacity: 0.8,
+            lineHeight: 1,
+            userSelect: 'none',
+          }}>{round.answer.emoji}</span>
         </div>
 
         {/* Choices */}
@@ -117,14 +121,14 @@ export default function ShadowMatch({ onBack }) {
 
             return (
               <button key={animal.name} style={{
-                width: 'min(25vw, 25vh)', height: 'min(12vw, 12vh)',
+                width: 'min(28vw, 28vh)', height: 'min(14vw, 14vh)',
                 borderRadius: 'min(2vw, 20px)', border, backgroundColor: bg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5vw',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2vw',
                 cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                 transition: 'all 0.3s ease', animation: anim,
               }} onClick={() => handlePick(animal)}>
-                <span style={{ fontSize: 'min(5vw, 44px)' }}>{animal.emoji}</span>
-                <span style={{ fontSize: 'min(2.5vw, 22px)', fontWeight: 'bold', color: '#5D4E37' }}>{animal.name}</span>
+                <span style={{ fontSize: 'min(8vw, 64px)', lineHeight: 1 }}>{animal.emoji}</span>
+                <span style={{ fontSize: 'min(3vw, 26px)', fontWeight: 'bold', color: '#5D4E37' }}>{animal.name}</span>
               </button>
             );
           })}
