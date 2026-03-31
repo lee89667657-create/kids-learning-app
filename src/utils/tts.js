@@ -1,5 +1,8 @@
 let cachedVoice = null;
 let voicesLoaded = false;
+let lastText = '';
+let lastTime = 0;
+let resumeTimer = null;
 
 function loadVoices() {
   if (voicesLoaded) return;
@@ -39,20 +42,53 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 }
 
 /**
- * speak for 형 (child1) — slightly high pitch, moderate speed
+ * speak for 형 (child1)
  */
 export function speak(text, options = {}) {
   if (!('speechSynthesis' in window)) return;
+
+  // Prevent duplicate calls with same text within 300ms
+  const now = Date.now();
+  if (text === lastText && now - lastTime < 300) return;
+  lastText = text;
+  lastTime = now;
+
+  // Cancel and clear previous
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  const voice = getBestKoreanVoice();
-  if (voice) u.voice = voice;
-  u.lang = 'ko-KR';
-  u.rate = options.rate ?? 0.85;
-  u.pitch = options.pitch ?? 1.1;
-  u.volume = 1;
-  if (options.onEnd) u.onend = options.onEnd;
-  speechSynthesis.speak(u);
+  if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+
+  // Delay after cancel to avoid Chrome stuttering bug
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    const voice = getBestKoreanVoice();
+    if (voice) u.voice = voice;
+    u.lang = 'ko-KR';
+    u.rate = options.rate ?? 0.85;
+    u.pitch = options.pitch ?? 1.1;
+    u.volume = 1;
+
+    // Chrome bug: long utterances pause after ~15s. Keep resuming.
+    resumeTimer = setInterval(() => {
+      if (!speechSynthesis.speaking) {
+        clearInterval(resumeTimer);
+        resumeTimer = null;
+        return;
+      }
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+      }
+    }, 10000);
+
+    u.onend = () => {
+      if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+      options.onEnd?.();
+    };
+    u.onerror = () => {
+      if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+    };
+
+    speechSynthesis.speak(u);
+  }, 100);
 }
 
 /**
@@ -60,4 +96,14 @@ export function speak(text, options = {}) {
  */
 export function speakCute(text, options = {}) {
   speak(text, { rate: 0.8, pitch: 1.3, ...options });
+}
+
+/**
+ * Stop all speech — call in useEffect cleanup
+ */
+export function stopSpeech() {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+  }
+  if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
 }
