@@ -71,35 +71,35 @@ const VEHICLES = [
   },
   {
     id: 'ship', name: '배', emoji: '🚢', seats: 3, extra: 2,
-    bg: 'linear-gradient(180deg, #87CEEB 0%, #B3E5FC 40%, #4FC3F7 40%, #0288D1 100%)',
+    bg: 'linear-gradient(180deg, #87CEEB 0%, #B3E5FC 30%, #4FC3F7 30%, #0277BD 100%)',
     departTTS: '출항~! 둥실둥실!',
     departTransform: 'translateX(120vw)',
     departDuration: '3s', sfx: 'foghorn',
-    svgW: '85vw', svgH: '50vh',
+    svgW: '90vw', svgH: '45vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
-      <svg viewBox="0 0 380 160" style={{ width: '100%', height: '100%' }}>
+      <svg viewBox="0 0 480 240" style={{ width: '100%', height: '100%' }}>
         {/* Water */}
-        <path d="M0,130 Q60,118 120,130 Q180,142 240,130 Q300,118 380,130 L380,160 L0,160Z" fill="#29B6F6" opacity="0.5">
-          <animate attributeName="d" values="M0,130 Q60,118 120,130 Q180,142 240,130 Q300,118 380,130 L380,160 L0,160Z;M0,130 Q60,142 120,130 Q180,118 240,130 Q300,142 380,130 L380,160 L0,160Z;M0,130 Q60,118 120,130 Q180,142 240,130 Q300,118 380,130 L380,160 L0,160Z" dur="2s" repeatCount="indefinite" />
+        <path d="M0,195 Q80,180 160,195 Q240,210 320,195 Q400,180 480,195 L480,240 L0,240Z" fill="#29B6F6" opacity="0.5">
+          <animate attributeName="d" values="M0,195 Q80,180 160,195 Q240,210 320,195 Q400,180 480,195 L480,240 L0,240Z;M0,195 Q80,210 160,195 Q240,180 320,195 Q400,210 480,195 L480,240 L0,240Z;M0,195 Q80,180 160,195 Q240,210 320,195 Q400,180 480,195 L480,240 L0,240Z" dur="2s" repeatCount="indefinite" />
         </path>
-        {/* Hull */}
-        <path d="M30,125 L15,70 L365,70 L350,125Z" fill="#5C6BC0" stroke="#3949AB" strokeWidth="2.5" />
-        {/* Deck */}
-        <rect x="40" y="35" width="300" height="38" rx="10" fill="#7986CB" stroke="#5C6BC0" strokeWidth="2" />
+        {/* Hull - bigger */}
+        <path d="M40,185 L20,85 L460,85 L440,185Z" fill="#5C6BC0" stroke="#3949AB" strokeWidth="3" />
+        {/* Deck - taller */}
+        <rect x="50" y="35" width="380" height="55" rx="12" fill="#7986CB" stroke="#5C6BC0" strokeWidth="2" />
         {/* Smokestack */}
-        <rect x="300" y="10" width="22" height="28" rx="4" fill="#EF5350" />
-        {driving && <circle cx="311" cy="6" r="6" fill="#BDBDBD" opacity="0.6"><animate attributeName="cy" values="6;-6;-18" dur="1s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.6;0.3;0" dur="1s" repeatCount="indefinite" /></circle>}
+        <rect x="385" y="8" width="26" height="30" rx="5" fill="#EF5350" />
+        {driving && <circle cx="398" cy="4" r="7" fill="#BDBDBD" opacity="0.6"><animate attributeName="cy" values="4;-10;-24" dur="1s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.6;0.3;0" dur="1s" repeatCount="indefinite" /></circle>}
         {/* Flag */}
-        <line x1="330" y1="35" x2="330" y2="12" stroke="#795548" strokeWidth="2.5" />
-        <polygon points="330,12 352,20 330,28" fill="#FFA726" />
+        <line x1="420" y1="35" x2="420" y2="10" stroke="#795548" strokeWidth="3" />
+        <polygon points="420,10 445,20 420,30" fill="#FFA726" />
         {/* Captain */}
-        <text x="340" y="58" textAnchor="middle" fontSize="20">🧑‍✈️</text>
-        {/* Windows (big circles) */}
-        {seats.map((a, i) => { const wx = 60 + i * 85; const f = filled.includes(i); const n = i === filled.length && !driving; return (
-          <g key={i}><circle ref={el => { seatRefs.current[i] = el; }} cx={wx+25} cy="97" r="22" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#E3F2FD'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#90CAF9'} strokeWidth={n ? 3 : 2} strokeDasharray={f ? 'none' : '4,4'} />
-          {f ? <text x={wx+25} y="104" textAnchor="middle" fontSize="22" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
-             : <text x={wx+25} y="104" textAnchor="middle" fontSize="22" style={{filter:'brightness(0)',opacity:nearSeat===i?0.4:0.15}}>{a.emoji}</text>}
-          <text x={wx+25} y="128" textAnchor="middle" fontSize="11" fill="#5D4E37" fontWeight="bold">{i+1}</text></g>
+        <text x="435" y="65" textAnchor="middle" fontSize="24">🧑‍✈️</text>
+        {/* Windows (very big circles) */}
+        {seats.map((a, i) => { const wx = 65 + i * 115; const f = filled.includes(i); const n = i === filled.length && !driving; return (
+          <g key={i}><circle ref={el => { seatRefs.current[i] = el; }} cx={wx+40} cy="135" r="40" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#E3F2FD'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#90CAF9'} strokeWidth={n ? 4 : 3} strokeDasharray={f ? 'none' : '8,6'} />
+          {f ? <text x={wx+40} y="148" textAnchor="middle" fontSize="45" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
+             : <text x={wx+40} y="148" textAnchor="middle" fontSize="45" style={{filter:'brightness(0) contrast(2)',opacity:nearSeat===i?0.7:0.6}}>{a.emoji}</text>}
+          <text x={wx+40} y="188" textAnchor="middle" fontSize="14" fill="#5D4E37" fontWeight="bold">{i+1}</text></g>
         ); })}
       </svg>
     ),
@@ -110,25 +110,25 @@ const VEHICLES = [
     departTTS: '발사~!',
     departTransform: 'translateY(-120vh) rotate(-10deg)',
     departDuration: '2s', sfx: 'rocket',
-    svgW: '40vw', svgH: '50vh',
+    svgW: '50vw', svgH: '45vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
-      <svg viewBox="0 0 160 320" style={{ width: '100%', height: '100%' }}>
+      <svg viewBox="0 0 220 440" style={{ width: '100%', height: '100%' }}>
         {/* Flame */}
-        {driving && <><ellipse cx="80" cy="305" rx="22" ry="35" fill="#FF6F00" opacity="0.8"><animate attributeName="ry" values="30;42;30" dur="0.2s" repeatCount="indefinite" /></ellipse>
-        <ellipse cx="80" cy="300" rx="12" ry="24" fill="#FFCA28"><animate attributeName="ry" values="18;28;18" dur="0.15s" repeatCount="indefinite" /></ellipse></>}
-        {/* Body */}
-        <path d="M45,275 L45,90 Q45,30 80,10 Q115,30 115,90 L115,275Z" fill="#E0E0E0" stroke="#BDBDBD" strokeWidth="2.5" />
+        {driving && <><ellipse cx="110" cy="420" rx="30" ry="45" fill="#FF6F00" opacity="0.8"><animate attributeName="ry" values="38;55;38" dur="0.2s" repeatCount="indefinite" /></ellipse>
+        <ellipse cx="110" cy="415" rx="16" ry="30" fill="#FFCA28"><animate attributeName="ry" values="22;35;22" dur="0.15s" repeatCount="indefinite" /></ellipse></>}
+        {/* Body - wider */}
+        <path d="M50,380 L50,120 Q50,40 110,12 Q170,40 170,120 L170,380Z" fill="#E0E0E0" stroke="#BDBDBD" strokeWidth="3" />
         {/* Nose */}
-        <path d="M45,90 Q45,30 80,10 Q115,30 115,90" fill="#EF5350" />
+        <path d="M50,120 Q50,40 110,12 Q170,40 170,120" fill="#EF5350" />
         {/* Fins */}
-        <path d="M45,240 L18,280 L45,275Z" fill="#42A5F5" />
-        <path d="M115,240 L142,280 L115,275Z" fill="#42A5F5" />
-        {/* Windows (big) */}
-        {seats.map((a, i) => { const wy = 105 + i * 42; const f = filled.includes(i); const n = i === filled.length && !driving; return (
-          <g key={i}><circle ref={el => { seatRefs.current[i] = el; }} cx="80" cy={wy} r="17" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#BBDEFB'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#64B5F6'} strokeWidth={n ? 3 : 2} strokeDasharray={f ? 'none' : '4,4'} />
-          {f ? <text x="80" y={wy+6} textAnchor="middle" fontSize="18" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
-             : <text x="80" y={wy+6} textAnchor="middle" fontSize="18" style={{filter:'brightness(0)',opacity:nearSeat===i?0.4:0.15}}>{a.emoji}</text>}
-          <text x="80" y={wy+26} textAnchor="middle" fontSize="10" fill={driving ? '#FFF' : '#7A6B5D'} fontWeight="bold">{i+1}</text></g>
+        <path d="M50,335 L15,385 L50,380Z" fill="#42A5F5" />
+        <path d="M170,335 L205,385 L170,380Z" fill="#42A5F5" />
+        {/* Windows (very big) */}
+        {seats.map((a, i) => { const wy = 140 + i * 60; const f = filled.includes(i); const n = i === filled.length && !driving; return (
+          <g key={i}><circle ref={el => { seatRefs.current[i] = el; }} cx="110" cy={wy} r="25" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#BBDEFB'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#64B5F6'} strokeWidth={n ? 4 : 3} strokeDasharray={f ? 'none' : '8,6'} />
+          {f ? <text x="110" y={wy+8} textAnchor="middle" fontSize="28" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
+             : <text x="110" y={wy+8} textAnchor="middle" fontSize="28" style={{filter:'brightness(0) contrast(2)',opacity:nearSeat===i?0.7:0.6}}>{a.emoji}</text>}
+          <text x="110" y={wy+36} textAnchor="middle" fontSize="12" fill={driving ? '#FFF' : '#7A6B5D'} fontWeight="bold">{i+1}</text></g>
         ); })}
       </svg>
     ),
