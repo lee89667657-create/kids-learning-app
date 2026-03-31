@@ -251,8 +251,8 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
   const [dragging, setDragging] = useState(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [nearSeat, setNearSeat] = useState(-1);
-  const cardOrigins = useRef({});
   const seatRefs = useRef([]);
+  const draggingRef = useRef(null);
 
   const nextIdx = filled.length;
   const allFilled = filled.length === round.seats.length;
@@ -268,56 +268,74 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
     const nv = VEHICLES[ni];
     const r = pickVehicleRound(nv.seats, nv.extra);
     setRound(r); setFilled([]); setDeparting(false); setCountdown(null);
-    setWrongSnap(null); setDragging(null); setNearSeat(-1);
+    setWrongSnap(null); setDragging(null); draggingRef.current = null; setNearSeat(-1);
     setTimeout(() => speak(nv.name), 500);
   }
 
-  function isOverSeat(x, y, i) {
-    const el = seatRefs.current[i]; if (!el) return false;
-    const r = el.getBoundingClientRect();
-    return x >= r.left - 10 && x <= r.right + 10 && y >= r.top - 10 && y <= r.bottom + 10;
-  }
-
-  function onDown(e, a) { if (allFilled || departing || wrongSnap) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); const r = e.currentTarget.getBoundingClientRect(); cardOrigins.current[a.name] = { x: r.left, y: r.top }; setDragging(a.name); setDragPos({ x: e.clientX, y: e.clientY }); }
-  function onMove(e) { if (!dragging) return; e.preventDefault(); setDragPos({ x: e.clientX, y: e.clientY }); let f = -1; for (let i = 0; i < round.seats.length; i++) { if (isOverSeat(e.clientX, e.clientY, i)) { f = i; break; } } setNearSeat(f); }
-
-  function onUp(e) {
-    if (!dragging) return; e.preventDefault();
-    const animal = round.cards.find((a) => a.name === dragging);
-    if (nearSeat >= 0 && animal) {
-      if (nearSeat !== nextIdx) { setDragging(null); setNearSeat(-1); return; }
-      setTotal((t) => t + 1);
-      if (animal.name === round.seats[nearSeat].name) {
-        const nf = [...filled, nearSeat]; setFilled(nf); setScore((s) => s + 1); addScore('child2', 'shadow', 1);
-        if (nf.length === round.seats.length) {
-          if (v.id === 'rocket') {
-            setCelebMode('mega'); playMegaFanfare();
-            let c = 3; setCountdown(c);
-            const iv = setInterval(() => { c--; if (c > 0) { setCountdown(c); } else { clearInterval(iv); setCountdown(null); playSfx(v.sfx); setDeparting(true); setTimeout(() => { setCelebMode(null); nextVehicle(); }, 3000); } }, 800);
-          } else {
-            playSfx(v.sfx); setCelebMode('mega');
-            setTimeout(() => { setDeparting(true); }, 1000);
-            setTimeout(() => { setCelebMode(null); nextVehicle(); }, 4000);
-          }
-        } else { playFanfare(); speak(animal.name); setCelebMode('big'); setTimeout(() => setCelebMode(null), 2000); }
-      } else { setWrongSnap(animal.name); setTimeout(() => setWrongSnap(null), 600); }
+  function findSeatAt(x, y) {
+    for (let i = 0; i < round.seats.length; i++) {
+      const el = seatRefs.current[i];
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      if (x >= r.left - 20 && x <= r.right + 20 && y >= r.top - 20 && y <= r.bottom + 20) return i;
     }
-    setDragging(null); setNearSeat(-1);
+    return -1;
   }
 
-  function cardStyle(animal) {
-    const placed = filled.some((fi) => round.seats[fi]?.name === animal.name);
-    const s = { width: '22vw', height: '22vw', borderRadius: '2vw', border: '3px solid transparent', backgroundColor: isRocket ? 'rgba(255,255,255,0.9)' : '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh', boxShadow: '0 3px 10px rgba(0,0,0,0.1)', cursor: placed ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === animal.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === animal.name ? 100 : 1, opacity: placed ? 0.3 : 1 };
-    if (dragging === animal.name) { const o = cardOrigins.current[animal.name]; if (o) { s.transform = `translate(${dragPos.x-o.x-35}px,${dragPos.y-o.y-35}px) scale(1.1)`; s.boxShadow = '0 10px 28px rgba(0,0,0,0.25)'; } }
-    if (wrongSnap === animal.name) s.animation = 'shake 0.4s ease-in-out';
-    return s;
+  function handleDown(e, a) {
+    if (allFilled || departing || wrongSnap) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    draggingRef.current = a.name;
+    setDragging(a.name);
+    setDragPos({ x: e.clientX, y: e.clientY });
+  }
+
+  function handleMove(e) {
+    if (!draggingRef.current) return;
+    e.preventDefault();
+    const x = e.clientX, y = e.clientY;
+    setDragPos({ x, y });
+    setNearSeat(findSeatAt(x, y));
+  }
+
+  function handleUp(e) {
+    if (!draggingRef.current) return;
+    e.preventDefault();
+    const name = draggingRef.current;
+    const animal = round.cards.find((a) => a.name === name);
+    const seat = findSeatAt(e.clientX, e.clientY);
+
+    if (seat >= 0 && animal) {
+      if (seat === nextIdx) {
+        setTotal((t) => t + 1);
+        if (animal.name === round.seats[seat].name) {
+          const nf = [...filled, seat]; setFilled(nf); setScore((s) => s + 1); addScore('child2', 'shadow', 1);
+          if (nf.length === round.seats.length) {
+            if (v.id === 'rocket') {
+              setCelebMode('mega'); playMegaFanfare();
+              let c = 3; setCountdown(c);
+              const iv = setInterval(() => { c--; if (c > 0) { setCountdown(c); } else { clearInterval(iv); setCountdown(null); playSfx(v.sfx); setDeparting(true); setTimeout(() => { setCelebMode(null); nextVehicle(); }, 3000); } }, 800);
+            } else {
+              playSfx(v.sfx); setCelebMode('mega');
+              setTimeout(() => { setDeparting(true); }, 1000);
+              setTimeout(() => { setCelebMode(null); nextVehicle(); }, 4000);
+            }
+          } else { playFanfare(); speak(animal.name); setCelebMode('big'); setTimeout(() => setCelebMode(null), 2000); }
+        } else { setWrongSnap(animal.name); setTimeout(() => setWrongSnap(null), 600); }
+      }
+    }
+    draggingRef.current = null;
+    setDragging(null);
+    setNearSeat(-1);
   }
 
   return (
     <div style={{
       position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh',
       background: v.bg, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-    }} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+      touchAction: 'none',
+    }} onPointerMove={handleMove} onPointerUp={handleUp} onPointerCancel={handleUp}>
       <CelebrationOverlay mode={celebMode} score={score} onDone={() => {}} />
 
       {/* Background stars for rocket */}
@@ -379,13 +397,41 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
         <div style={{ display: 'flex', gap: '2vw', justifyContent: 'center', alignItems: 'center' }}>
           {round.cards.map((a) => {
             const placed = filled.some((fi) => round.seats[fi]?.name === a.name);
-            return <div key={a.name} style={cardStyle(a)} onPointerDown={(e) => !placed && onDown(e, a)}>
+            const isDragged = dragging === a.name;
+            return <div key={a.name} style={{
+              width: '22vw', height: '22vw', borderRadius: '2vw',
+              border: '3px solid transparent',
+              backgroundColor: isRocket ? 'rgba(255,255,255,0.9)' : '#FFF',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh',
+              boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
+              cursor: placed ? 'default' : 'grab',
+              touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
+              opacity: placed ? 0.3 : isDragged ? 0.3 : 1,
+              animation: wrongSnap === a.name ? 'shake 0.4s ease-in-out' : 'none',
+              transition: 'opacity 0.2s ease',
+            }}
+              onPointerDown={(e) => !placed && handleDown(e, a)}
+              onPointerMove={handleMove}
+              onPointerUp={handleUp}
+              onPointerCancel={handleUp}
+            >
               <span style={{ fontSize: '10vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
               <span style={{ fontSize: '2.5vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
             </div>;
           })}
         </div>
       </div>
+
+      {/* Drag ghost */}
+      {dragging && (() => {
+        const animal = round.cards.find((a) => a.name === dragging);
+        return animal ? <div style={{
+          position: 'fixed', left: dragPos.x, top: dragPos.y,
+          transform: 'translate(-50%, -50%) scale(1.2)',
+          fontSize: '10vw', lineHeight: 1,
+          pointerEvents: 'none', zIndex: 9999,
+        }}>{animal.emoji}</div> : null;
+      })()}
 
       <style>{`
         @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 0.8; } }
