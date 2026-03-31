@@ -131,8 +131,7 @@ export default function NumberGame({ onBack }) {
           gridTemplateColumns: 'repeat(5, 1fr)',
           gridTemplateRows: 'repeat(2, 1fr)',
           gap: 'min(2vw, 16px)',
-          width: '80%',
-          maxWidth: 600,
+          width: 'min(80%, 90vw)',
         }}>
           {shuffled.map((num) => (
             <button key={num} style={{

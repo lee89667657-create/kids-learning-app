@@ -142,9 +142,9 @@ export default function WordManager({ onBack }) {
 
         {/* Right: add form */}
         <div style={{
-          width: '35%', minWidth: 240, flexShrink: 0, display: 'flex', flexDirection: 'column',
+          width: '35%', minWidth: 'min(240px, 30vw)', flexShrink: 0, display: 'flex', flexDirection: 'column',
           padding: '2vh 1.5vw', borderRadius: 16, backgroundColor: '#FFFFFF', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          overflowY: 'auto',
+          overflow: 'hidden',
         }}>
           <div style={{ fontSize: 'min(2.2vw, 20px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1.5vh' }}>새 단어 추가</div>
           <div style={{ display: 'flex', gap: '1vw', marginBottom: '1vh', alignItems: 'center' }}>
