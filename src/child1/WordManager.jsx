@@ -54,6 +54,7 @@ export default function WordManager({ onBack }) {
   const [editing, setEditing] = useState(null);
   const [newWord, setNewWord] = useState('');
   const [newSound, setNewSound] = useState('');
+  const [newCat, setNewCat] = useState('가족');
   const [newPhoto, setNewPhoto] = useState(null);
   const [showToast, setShowToast] = useState(false);
 
@@ -70,10 +71,13 @@ export default function WordManager({ onBack }) {
   }
   function handleAdd() {
     const word = newWord.trim(); if (!word || !newPhoto) return;
-    addCustomWord(category, { word, emoji: '📷', sound: newSound.trim() || word, image: null });
+    addCustomWord(newCat, { word, emoji: '📷', sound: newSound.trim() || word, image: null });
     saveCustomImage(word, newPhoto);
     setNewWord(''); setNewSound(''); setNewPhoto(null);
-    setShowToast(true); setTimeout(() => setShowToast(false), 1500); refresh();
+    setShowToast(true); setTimeout(() => setShowToast(false), 1500);
+    // Switch view to the category where the word was added
+    if (newCat !== category) setCategory(newCat);
+    else refresh();
   }
   function openEdit(word) {
     setEditing({ original: word.word, newWord: word.word, newSound: word.sound, newEmoji: word.emoji, isCustom: !!word._custom });
@@ -147,24 +151,55 @@ export default function WordManager({ onBack }) {
           overflow: 'hidden',
         }}>
           <div style={{ fontSize: 'min(2.2vw, 20px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1.5vh' }}>새 단어 추가</div>
+
+          {/* 단어 입력 + TTS 미리듣기 */}
           <div style={{ display: 'flex', gap: '1vw', marginBottom: '1vh', alignItems: 'center' }}>
             <input style={input} placeholder="단어 입력" value={newWord} onChange={(e) => { setNewWord(e.target.value); if (!newSound || newSound === newWord) setNewSound(e.target.value); }} />
-            <button style={{ ...smallBtn(newWord.trim() ? '#E3F2FD' : '#F0F0F0', newWord.trim() ? '#1565C0' : '#BDBDBD'), padding: '1vh 1vw', fontSize: 'min(2.5vw, 22px)' }}
-              onClick={() => newWord.trim() && speakWord(newSound.trim() || newWord.trim())} disabled={!newWord.trim()}>🔊</button>
+            <button style={{
+              padding: '1vh 1.2vw', borderRadius: 12, border: 'none', fontSize: 'min(2.5vw, 22px)',
+              backgroundColor: newWord.trim() ? '#E3F2FD' : '#F0F0F0', color: newWord.trim() ? '#1565C0' : '#BDBDBD',
+              cursor: newWord.trim() ? 'pointer' : 'default', minWidth: 'min(5vw, 44px)', minHeight: 'min(5vh, 44px)',
+            }} onClick={() => newWord.trim() && speakWord(newSound.trim() || newWord.trim())} disabled={!newWord.trim()}>🔊</button>
           </div>
-          <input style={{ ...input, marginBottom: '1.5vh' }} placeholder="소리 (TTS 텍스트)" value={newSound} onChange={(e) => setNewSound(e.target.value)} />
+
+          {/* TTS 텍스트 (자동 동기화) */}
+          <input style={{ ...input, marginBottom: '1vh' }} placeholder="소리 (TTS 텍스트)" value={newSound} onChange={(e) => setNewSound(e.target.value)} />
+
+          {/* 카테고리 선택 */}
+          <select style={{
+            ...input, marginBottom: '1.5vh', appearance: 'auto', cursor: 'pointer',
+          }} value={newCat} onChange={(e) => setNewCat(e.target.value)}>
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          {/* 사진 업로드 (필수) */}
           <div style={{
-            border: '3px dashed #D4C5B0', borderRadius: 14, padding: '2vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', backgroundColor: newPhoto ? '#FFFEF9' : '#FFF3E0', marginBottom: '1.5vh', minHeight: '12vh',
+            flex: 1, minHeight: 'min(12vh, 100px)',
+            border: '3px dashed #D4C5B0', borderRadius: 14, padding: '1.5vh',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', backgroundColor: newPhoto ? '#FFFEF9' : '#FFF3E0', marginBottom: '1.5vh',
+            transition: 'background-color 0.2s ease',
           }} onClick={() => document.getElementById('new-word-photo').click()}>
-            {newPhoto ? <img src={newPhoto} alt="미리보기" style={{ width: 'min(10vw, 100px)', height: 'min(10vw, 100px)', borderRadius: 14, objectFit: 'cover', border: '2px solid #A5D6A7' }} />
-              : <><span style={{ fontSize: 'min(5vw, 40px)', marginBottom: '0.5vh' }}>📷</span><span style={{ fontSize: 'min(1.8vw, 16px)', color: '#7A6B5D', fontWeight: 'bold' }}>사진을 눌러서 추가해요</span></>}
+            {newPhoto ? (
+              <img src={newPhoto} alt="미리보기" style={{
+                maxWidth: '90%', maxHeight: '100%', borderRadius: 14, objectFit: 'contain', border: '2px solid #A5D6A7',
+              }} />
+            ) : (
+              <>
+                <span style={{ fontSize: 'min(5vw, 40px)', marginBottom: '0.5vh' }}>📷</span>
+                <span style={{ fontSize: 'min(1.8vw, 16px)', color: '#7A6B5D', fontWeight: 'bold' }}>사진을 눌러서 추가해요</span>
+              </>
+            )}
           </div>
           <input id="new-word-photo" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleNewPhoto} />
+
+          {/* 추가 버튼 */}
           <button style={{
-            width: '100%', padding: '1.5vh', borderRadius: 14, border: 'none', backgroundColor: '#C8E6C9', color: '#2E7D32',
-            fontSize: 'min(2.2vw, 20px)', fontWeight: 'bold', cursor: newWord.trim() && newPhoto ? 'pointer' : 'default',
-            opacity: newWord.trim() && newPhoto ? 1 : 0.5,
+            width: '100%', padding: 'min(1.5vh, 14px)', borderRadius: 14, border: 'none',
+            backgroundColor: '#C8E6C9', color: '#2E7D32', minHeight: 'min(8vh, 56px)',
+            fontSize: 'min(2.2vw, 20px)', fontWeight: 'bold',
+            cursor: newWord.trim() && newPhoto ? 'pointer' : 'default',
+            opacity: newWord.trim() && newPhoto ? 1 : 0.5, flexShrink: 0,
           }} onClick={handleAdd} disabled={!newWord.trim() || !newPhoto}>추가</button>
         </div>
       </div>
