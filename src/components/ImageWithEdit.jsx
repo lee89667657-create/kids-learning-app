@@ -106,6 +106,10 @@ function resizeImage(file, maxBytes = 500 * 1024) {
   });
 }
 
+/**
+ * @param {boolean} passthrough - true면 pointerEvents:'none'으로 부모에게 이벤트 전달 (ProfileSelect용)
+ *                                false면 자체적으로 길게 누르기 감지 (WordMatch, StrokeWriter용)
+ */
 export default function ImageWithEdit({
   imageKey,
   fallbackEmoji,
@@ -115,6 +119,7 @@ export default function ImageWithEdit({
   label = '',
   onImageChange,
   style = {},
+  passthrough = false,
 }) {
   const [customImg, setCustomImg] = useState(() => getCustomImage(imageKey));
   const [showModal, setShowModal] = useState(false);
@@ -147,7 +152,7 @@ export default function ImageWithEdit({
     e.target.value = '';
   }
 
-  // Long press via touchstart/touchend — does NOT block click propagation
+  // Long press handlers — only used when passthrough is false
   function handleTouchStart() {
     pressTimer.current = setTimeout(() => {
       pressTimer.current = null;
@@ -161,6 +166,15 @@ export default function ImageWithEdit({
       pressTimer.current = null;
     }
   }
+
+  const touchHandlers = passthrough
+    ? {}
+    : {
+        onTouchStart: handleTouchStart,
+        onTouchEnd: handleTouchEnd,
+        onTouchCancel: handleTouchEnd,
+        onContextMenu: (e) => e.preventDefault(),
+      };
 
   return (
     <>
@@ -176,34 +190,25 @@ export default function ImageWithEdit({
           flexShrink: 0,
           userSelect: 'none',
           WebkitUserSelect: 'none',
-          // pointerEvents pass through to parent — clicks bubble up
-          pointerEvents: 'none',
+          touchAction: 'manipulation',
+          ...(passthrough ? { pointerEvents: 'none' } : {}),
           ...style,
         }}
+        {...touchHandlers}
       >
         {customImg ? (
-          <img src={customImg} alt={label} style={{ width: '100%', height: '100%', borderRadius, objectFit: 'cover', pointerEvents: 'none' }} draggable={false} />
+          <img
+            src={customImg}
+            alt={label}
+            style={{ width: '100%', height: '100%', borderRadius, objectFit: 'cover', pointerEvents: 'none' }}
+            draggable={false}
+          />
         ) : (
-          <span style={{ fontSize: `calc(${dim} * 0.6)`, lineHeight: 1, pointerEvents: 'none' }}>{fallbackEmoji}</span>
+          <span style={{ fontSize: `calc(${dim} * 0.6)`, lineHeight: 1, pointerEvents: 'none' }}>
+            {fallbackEmoji}
+          </span>
         )}
       </div>
-
-      {/* Invisible overlay that captures long press via touch events only.
-          touchstart/touchend do NOT prevent click from firing on the parent.
-          On desktop, this overlay has pointerEvents:none so mouse clicks pass through. */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          // Let mouse/pointer clicks pass through to parent button
-          pointerEvents: 'none',
-        }}
-        // Touch events still fire even with pointerEvents:none on some browsers,
-        // but we need a different approach. Use the parent's onTouchStart instead.
-      />
 
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
 
@@ -222,25 +227,4 @@ export default function ImageWithEdit({
       {showToast && <div style={modalStyles.toast}>바뀌었어요!</div>}
     </>
   );
-}
-
-// Hook for parent components to add long-press behavior
-export function useLongPress(callback, delay = 3000) {
-  const timer = useRef(null);
-
-  function onTouchStart() {
-    timer.current = setTimeout(() => {
-      timer.current = null;
-      callback();
-    }, delay);
-  }
-
-  function onTouchEnd() {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
-  }
-
-  return { onTouchStart, onTouchEnd, onTouchCancel: onTouchEnd };
 }
