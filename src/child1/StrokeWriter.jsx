@@ -24,7 +24,9 @@ const VOWELS = {
 const CONSONANT_LIST = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ'];
 const VOWEL_LIST = ['ㅏ', 'ㅓ', 'ㅗ', 'ㅜ', 'ㅡ', 'ㅣ', 'ㅐ'];
 const ALL_LETTERS = { ...CONSONANTS, ...VOWELS };
-const PALM_THRESHOLD = 30;
+
+// Canvas internal resolution (CSS scales it responsively)
+const CANVAS_RES = 500;
 
 function speak(text) {
   if ('speechSynthesis' in window) {
@@ -35,11 +37,38 @@ function speak(text) {
     window.speechSynthesis.speak(u);
   }
 }
+
 function getLineWidth(pressure, pointerType) {
   if (pointerType === 'pen' && pressure > 0) return 4 + pressure * 6;
   return 6;
 }
-function isPalm(e) { return e.width > PALM_THRESHOLD || e.height > PALM_THRESHOLD; }
+
+// Palm rejection: touch area > 2500 sq pixels = palm
+function isPalm(e) {
+  return (e.width || 0) * (e.height || 0) > 2500;
+}
+
+// Shared drawing helpers
+function getPos(e, canvasRef) {
+  const canvas = canvasRef.current;
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height),
+  };
+}
+
+function drawStroke(ctx, from, to, pressure, pointerType) {
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.lineTo(to.x, to.y);
+  ctx.strokeStyle = '#5D4E37';
+  ctx.lineWidth = getLineWidth(pressure, pointerType);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.setLineDash([]);
+  ctx.stroke();
+}
 
 // Common styles
 const tabBtn = (active) => ({
@@ -52,6 +81,7 @@ const tabBtn = (active) => ({
   backgroundColor: active ? '#FFE0B2' : '#FFF3E0',
   color: active ? '#E65100' : '#5D4E37',
 });
+
 const letterBtnStyle = (active, done) => ({
   width: 'min(5.5vw, 48px)',
   height: 'min(5.5vw, 48px)',
@@ -63,6 +93,7 @@ const letterBtnStyle = (active, done) => ({
   cursor: 'pointer',
   color: '#5D4E37',
 });
+
 const actionBtnStyle = (bg, color) => ({
   padding: '1.2vh 3vw',
   fontSize: 'min(2.5vw, 22px)',
@@ -72,9 +103,21 @@ const actionBtnStyle = (bg, color) => ({
   cursor: 'pointer',
   backgroundColor: bg,
   color,
+  minHeight: 'min(6vh, 48px)',
 });
 
-// ─── Letter Mode ───
+const canvasCSSSize = 'min(50vh, 55vw)';
+const canvasStyle = {
+  width: canvasCSSSize,
+  height: canvasCSSSize,
+  borderRadius: 24,
+  border: '3px solid #E0D5C7',
+  backgroundColor: '#FFFEF9',
+  touchAction: 'none',
+  cursor: 'crosshair',
+};
+
+// ─── Letter Mode (자음/모음 연습) ───
 function LetterMode() {
   const canvasRef = useRef(null);
   const [section, setSection] = useState('consonant');
@@ -85,8 +128,6 @@ function LetterMode() {
   const isDrawing = useRef(false);
   const lastPos = useRef(null);
 
-  const canvasSize = 'min(50vh, 60vw)';
-
   const drawGuide = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -95,6 +136,7 @@ function LetterMode() {
     const letter = ALL_LETTERS[currentLetter];
     if (!letter) return;
     const scale = canvas.width / 100;
+
     ctx.save();
     ctx.setLineDash([6, 6]);
     ctx.strokeStyle = '#D4C5B0';
@@ -103,16 +145,31 @@ function LetterMode() {
     ctx.lineJoin = 'round';
     letter.strokes.forEach((stroke) => {
       ctx.beginPath();
-      stroke.forEach((pt, i) => { if (i === 0) ctx.moveTo(pt.x * scale, pt.y * scale); else ctx.lineTo(pt.x * scale, pt.y * scale); });
+      stroke.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x * scale, pt.y * scale);
+        else ctx.lineTo(pt.x * scale, pt.y * scale);
+      });
       ctx.stroke();
     });
+
+    // Stroke start numbers
     ctx.setLineDash([]);
+    const numR = canvas.width * 0.025;
     letter.strokes.forEach((stroke, idx) => {
-      const pt = stroke[0]; const x = pt.x * scale; const y = pt.y * scale;
-      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
-      ctx.fillStyle = '#FFE0B2'; ctx.fill();
-      ctx.strokeStyle = '#FFA726'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = '#E65100'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const pt = stroke[0];
+      const x = pt.x * scale;
+      const y = pt.y * scale;
+      ctx.beginPath();
+      ctx.arc(x, y, numR, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFE0B2';
+      ctx.fill();
+      ctx.strokeStyle = '#FFA726';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#E65100';
+      ctx.font = `bold ${Math.round(numR * 1.2)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(String(idx + 1), x, y);
     });
     ctx.restore();
@@ -120,25 +177,31 @@ function LetterMode() {
 
   useEffect(() => { drawGuide(); }, [currentLetter, drawGuide]);
 
-  function getPos(e) {
-    const canvas = canvasRef.current; const rect = canvas.getBoundingClientRect();
-    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
-  }
   function handlePointerDown(e) {
-    if (isPalm(e)) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);
-    isDrawing.current = true; lastPos.current = getPos(e);
+    if (isPalm(e)) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDrawing.current = true;
+    lastPos.current = getPos(e, canvasRef);
   }
   function handlePointerMove(e) {
-    if (!isDrawing.current || isPalm(e)) return; e.preventDefault();
-    const ctx = canvasRef.current.getContext('2d'); const pos = getPos(e);
-    ctx.beginPath(); ctx.moveTo(lastPos.current.x, lastPos.current.y); ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#5D4E37'; ctx.lineWidth = getLineWidth(e.pressure, e.pointerType);
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.setLineDash([]); ctx.stroke();
+    if (!isDrawing.current || isPalm(e)) return;
+    e.preventDefault();
+    const pos = getPos(e, canvasRef);
+    drawStroke(canvasRef.current.getContext('2d'), lastPos.current, pos, e.pressure, e.pointerType);
     lastPos.current = pos;
   }
-  function handlePointerUp(e) { e.preventDefault(); isDrawing.current = false; lastPos.current = null; }
+  function handlePointerUp(e) {
+    e.preventDefault();
+    isDrawing.current = false;
+    lastPos.current = null;
+  }
 
-  function switchSection(s) { setSection(s); setCurrentLetter(s === 'consonant' ? CONSONANT_LIST[0] : VOWEL_LIST[0]); setShowPraise(false); }
+  function switchSection(s) {
+    setSection(s);
+    setCurrentLetter(s === 'consonant' ? CONSONANT_LIST[0] : VOWEL_LIST[0]);
+    setShowPraise(false);
+  }
 
   return (
     <>
@@ -153,8 +216,7 @@ function LetterMode() {
         ))}
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-        <canvas ref={canvasRef} width={340} height={340}
-          style={{ width: canvasSize, height: canvasSize, borderRadius: 24, border: '3px solid #E0D5C7', backgroundColor: '#FFFEF9', touchAction: 'none', cursor: 'crosshair' }}
+        <canvas ref={canvasRef} width={CANVAS_RES} height={CANVAS_RES} style={canvasStyle}
           onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} />
       </div>
       <div style={{ display: 'flex', gap: '2vw', marginTop: '1vh', flexShrink: 0 }}>
@@ -165,99 +227,147 @@ function LetterMode() {
           setShowPraise(true); speak('잘 썼어!'); setTimeout(() => setShowPraise(false), 2000);
         }}>완성!</button>
       </div>
-      <div style={{ fontSize: 'min(3vw, 32px)', fontWeight: 'bold', color: '#4CAF50', marginTop: '0.5vh', opacity: showPraise ? 1 : 0, transition: 'opacity 0.5s ease', flexShrink: 0 }}>잘 썼어! 🌟</div>
+      <div style={{ fontSize: 'min(3vw, 28px)', fontWeight: 'bold', color: '#4CAF50', marginTop: '0.5vh', opacity: showPraise ? 1 : 0, transition: 'opacity 0.5s ease', flexShrink: 0, height: 'min(4vh, 32px)' }}>
+        잘 썼어! 🌟
+      </div>
     </>
   );
 }
 
-// ─── Word Mode ───
+// ─── Word Mode (단어 따라쓰기) ───
 function WordMode() {
   const canvasRef = useRef(null);
   const [category, setCategory] = useState('가족');
   const [wordList, setWordList] = useState([]);
   const [wordIdx, setWordIdx] = useState(0);
-  const [showPraise, setShowPraise] = useState(false);
   const isDrawing = useRef(false);
   const lastPos = useRef(null);
 
-  const canvasSize = 'min(50vh, 60vw)';
+  useEffect(() => {
+    const list = getWordsByCategory(category);
+    setWordList(list);
+    setWordIdx(0);
+  }, [category]);
 
-  useEffect(() => { const list = getWordsByCategory(category); setWordList(list); setWordIdx(0); setShowPraise(false); }, [category]);
   const currentWord = wordList[wordIdx] || null;
 
   const drawWordGuide = useCallback(() => {
-    const canvas = canvasRef.current; if (!canvas || !currentWord) return;
-    const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const canvas = canvasRef.current;
+    if (!canvas || !currentWord) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     const text = currentWord.word;
-    const fontSize = text.length === 1 ? 220 : text.length === 2 ? 160 : 120;
+    const len = text.length;
+    const fontSize = len === 1 ? canvas.width * 0.6 : len === 2 ? canvas.width * 0.42 : canvas.width * 0.32;
+
     ctx.save();
     ctx.font = `bold ${fontSize}px 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.strokeStyle = '#E0D5C7'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Dashed outline
+    ctx.strokeStyle = '#D4C5B0';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 8]);
     ctx.strokeText(text, canvas.width / 2, canvas.height / 2);
-    ctx.fillStyle = 'rgba(212, 197, 176, 0.15)'; ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    // Very light fill
+    ctx.fillStyle = 'rgba(212, 197, 176, 0.12)';
+    ctx.setLineDash([]);
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
     ctx.restore();
   }, [currentWord]);
 
-  useEffect(() => { drawWordGuide(); if (currentWord) setTimeout(() => speak(currentWord.sound), 300); }, [currentWord, drawWordGuide]);
+  useEffect(() => {
+    drawWordGuide();
+    if (currentWord) {
+      setTimeout(() => speak(currentWord.sound), 300);
+    }
+  }, [currentWord, drawWordGuide]);
 
-  function getPos(e) {
-    const canvas = canvasRef.current; const rect = canvas.getBoundingClientRect();
-    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+  function handlePointerDown(e) {
+    if (isPalm(e)) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDrawing.current = true;
+    lastPos.current = getPos(e, canvasRef);
   }
-  function handlePointerDown(e) { if (isPalm(e)) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); isDrawing.current = true; lastPos.current = getPos(e); }
   function handlePointerMove(e) {
-    if (!isDrawing.current || isPalm(e)) return; e.preventDefault();
-    const ctx = canvasRef.current.getContext('2d'); const pos = getPos(e);
-    ctx.beginPath(); ctx.moveTo(lastPos.current.x, lastPos.current.y); ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#5D4E37'; ctx.lineWidth = getLineWidth(e.pressure, e.pointerType);
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.setLineDash([]); ctx.stroke(); lastPos.current = pos;
+    if (!isDrawing.current || isPalm(e)) return;
+    e.preventDefault();
+    const pos = getPos(e, canvasRef);
+    drawStroke(canvasRef.current.getContext('2d'), lastPos.current, pos, e.pressure, e.pointerType);
+    lastPos.current = pos;
   }
-  function handlePointerUp(e) { e.preventDefault(); isDrawing.current = false; lastPos.current = null; }
+  function handlePointerUp(e) {
+    e.preventDefault();
+    isDrawing.current = false;
+    lastPos.current = null;
+  }
 
-  function goNext() { setWordIdx(wordIdx < wordList.length - 1 ? wordIdx + 1 : 0); setShowPraise(false); }
-  function goPrev() { if (wordIdx > 0) setWordIdx(wordIdx - 1); setShowPraise(false); }
+  function goNext() {
+    recordStrokeLetter('child1', `word:${currentWord?.word}`);
+    setWordIdx(wordIdx < wordList.length - 1 ? wordIdx + 1 : 0);
+  }
 
-  if (!currentWord) return <div style={{ fontSize: 'min(2.5vw, 24px)', color: '#7A6B5D' }}>이 카테고리에 단어가 없어요</div>;
+  if (!currentWord) {
+    return <div style={{ fontSize: 'min(2.5vw, 24px)', color: '#7A6B5D', textAlign: 'center', padding: '4vh' }}>이 카테고리에 단어가 없어요</div>;
+  }
 
   return (
     <>
+      {/* Category tabs */}
       <div style={{ display: 'flex', gap: 'min(1vw, 8px)', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '1vh', flexShrink: 0 }}>
         {categories.map((cat) => (
           <button key={cat} style={tabBtn(category === cat)} onClick={() => setCategory(cat)}>{cat}</button>
         ))}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2vw', marginBottom: '1vh', flexShrink: 0 }}>
-        <ImageWithEdit imageKey={currentWord.word} fallbackEmoji={currentWord.emoji} size={56} sizeCSS="min(6vw, 56px)" shape="square" label={currentWord.word} style={{ borderRadius: 12 }} />
-        <span style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>{currentWord.word}</span>
-        <button style={{ width: 'min(6vw, 56px)', height: 'min(6vw, 56px)', borderRadius: '50%', border: 'none', backgroundColor: '#BBDEFB', fontSize: 'min(3vw, 28px)', cursor: 'pointer' }}
-          onClick={() => speak(currentWord.sound)}>🔊</button>
-      </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-        <canvas ref={canvasRef} width={340} height={340}
-          style={{ width: canvasSize, height: canvasSize, borderRadius: 24, border: '3px solid #E0D5C7', backgroundColor: '#FFFEF9', touchAction: 'none', cursor: 'crosshair' }}
+
+      {/* Main area: image + canvas side by side */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3vw', minHeight: 0 }}>
+        {/* Left: word info */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5vh', flexShrink: 0 }}>
+          <ImageWithEdit
+            imageKey={currentWord.word}
+            fallbackEmoji={currentWord.emoji}
+            size={80}
+            sizeCSS="min(10vw, 10vh)"
+            shape="square"
+            label={currentWord.word}
+            style={{ borderRadius: 16 }}
+          />
+          <span style={{ fontSize: 'min(3.5vw, 30px)', fontWeight: 'bold', color: '#5D4E37' }}>
+            {currentWord.word}
+          </span>
+          <button style={{
+            width: 'min(7vw, 56px)', height: 'min(7vw, 56px)', borderRadius: '50%',
+            border: 'none', backgroundColor: '#BBDEFB', fontSize: 'min(3.5vw, 28px)', cursor: 'pointer',
+          }} onClick={() => speak(currentWord.sound)}>🔊</button>
+        </div>
+
+        {/* Right: canvas */}
+        <canvas ref={canvasRef} width={CANVAS_RES} height={CANVAS_RES} style={canvasStyle}
           onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} />
       </div>
-      <div style={{ display: 'flex', gap: '2vw', marginTop: '1vh', flexShrink: 0 }}>
+
+      {/* Bottom buttons */}
+      <div style={{ display: 'flex', gap: '2vw', marginTop: '1vh', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <button style={actionBtnStyle('#FFCDD2', '#C62828')} onClick={drawWordGuide}>지우기</button>
-        <button style={actionBtnStyle('#C8E6C9', '#2E7D32')} onClick={() => {
-          recordStrokeLetter('child1', `word:${currentWord.word}`);
-          setShowPraise(true); speak('잘 썼어!'); setTimeout(() => { setShowPraise(false); goNext(); }, 1500);
-        }}>완성!</button>
-      </div>
-      <div style={{ display: 'flex', gap: '2vw', marginTop: '0.5vh', alignItems: 'center', flexShrink: 0 }}>
-        <button style={{ ...actionBtnStyle('#B5D8F7', '#2C5F8A'), opacity: wordIdx === 0 ? 0.4 : 1 }} onClick={goPrev} disabled={wordIdx === 0}>← 이전</button>
-        <span style={{ fontSize: 'min(2vw, 20px)', color: '#7A6B5D' }}>{wordIdx + 1} / {wordList.length}</span>
+        <span style={{ fontSize: 'min(2vw, 18px)', color: '#7A6B5D' }}>
+          {wordIdx + 1} / {wordList.length}
+        </span>
         <button style={actionBtnStyle('#B5D8F7', '#2C5F8A')} onClick={goNext}>다음 →</button>
       </div>
-      <div style={{ fontSize: 'min(3vw, 32px)', fontWeight: 'bold', color: '#4CAF50', opacity: showPraise ? 1 : 0, transition: 'opacity 0.5s ease', flexShrink: 0 }}>잘 썼어! 🌟</div>
     </>
   );
 }
 
-// ─── Main ───
+// ─── Main StrokeWriter ───
 export default function StrokeWriter({ onBack }) {
   const [mode, setMode] = useState('letter');
+
   return (
     <div style={{
       height: '100vh',
@@ -268,19 +378,27 @@ export default function StrokeWriter({ onBack }) {
       padding: '2vh 3vw',
       overflow: 'hidden',
     }}>
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
-        <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
+        <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>
+          ← 뒤로
+        </button>
         <div style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>✏️ 한글 쓰기</div>
         <div style={{ width: '8vw' }} />
       </div>
+
+      {/* Mode tabs */}
       <div style={{ display: 'flex', gap: 0, marginBottom: '1vh', borderRadius: 20, overflow: 'hidden', border: '2px solid #D4C5B0', flexShrink: 0 }}>
         {['letter', 'word'].map((m) => (
           <button key={m} style={{
             padding: '1vh 3vw', fontSize: 'min(2vw, 20px)', fontWeight: 'bold', cursor: 'pointer', border: 'none',
             backgroundColor: mode === m ? '#FFE0B2' : '#FFF3E0', color: mode === m ? '#E65100' : '#5D4E37',
-          }} onClick={() => setMode(m)}>{m === 'letter' ? '자음/모음' : '단어 쓰기'}</button>
+          }} onClick={() => setMode(m)}>
+            {m === 'letter' ? '자음/모음' : '단어 쓰기'}
+          </button>
         ))}
       </div>
+
       {mode === 'letter' && <LetterMode />}
       {mode === 'word' && <WordMode />}
     </div>
