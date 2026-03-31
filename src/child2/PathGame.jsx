@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { addScore } from '../utils/storage';
-import { speakCute as speak } from '../utils/tts';
+import { speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
-import { speakPraise, playFanfare } from './utils/celebration';
+import { playFanfare } from './utils/celebration';
 import { startBGM, stopBGM } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
 
@@ -116,7 +116,6 @@ export default function PathGame({ onBack }) {
     drawGuide();
     setArrived(false);
     setShowStar(false);
-    setTimeout(() => speak('출발! 도착까지 선을 그어봐요'), 400);
   }, [level, drawGuide]);
 
   function getPos(e) {
@@ -165,7 +164,6 @@ export default function PathGame({ onBack }) {
       setShowStar(true);
       setCelebMode('big');
       playFanfare();
-      speakPraise();
     }
   }
 

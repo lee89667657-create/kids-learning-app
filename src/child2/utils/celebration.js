@@ -1,35 +1,3 @@
-import { speakCute } from '../../utils/tts';
-
-// ─── TTS ───
-const PRAISE_LINES = [
-  '와! 대단해요! 준우 최고!',
-  '완전 잘했어요! 짝짝짝!',
-  '우와 천재다! 준우 짱!',
-  '야호! 정답이에요! 최고최고!',
-  '멋져요! 준우 진짜 잘한다!',
-  '와! 역시 준우! 짱이야!',
-];
-
-const COMPLETE_LINES = [
-  '게임 끝! 준우 짱짱맨!',
-  '준우 완전 최고야! 대단해!',
-  '다 맞혔어요! 준우 천재!',
-];
-
-export function speakPraise() {
-  const text = PRAISE_LINES[Math.floor(Math.random() * PRAISE_LINES.length)];
-  speakCute(text);
-}
-
-export function speakComplete() {
-  const text = COMPLETE_LINES[Math.floor(Math.random() * COMPLETE_LINES.length)];
-  speakCute(text);
-}
-
-export function speakWrong() {
-  speakCute('괜찮아~ 다시 해봐요!');
-}
-
 // ─── Fanfare (Web Audio API) ───
 export function playFanfare() {
   try {

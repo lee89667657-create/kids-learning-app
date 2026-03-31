@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { speakCute as speak } from '../utils/tts';
+import { speak } from '../utils/tts';
 import { startBGM, stopBGM, playDrumroll } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
 
@@ -103,12 +103,6 @@ export default function Child2Home({ onNavigate, onBack }) {
     setProgress(totalProgress);
     setHandleAngle(accumulated.current % 360);
 
-    // Hint at 70%
-    if (totalProgress > 0.7 && !hintSpoken) {
-      speak('조금만 더!');
-      setHintSpoken(true);
-    }
-
     // Complete at 100%
     if (totalProgress >= 1) {
       isDragging.current = false;
@@ -143,7 +137,7 @@ export default function Child2Home({ onNavigate, onBack }) {
       setProgress(0);
       accumulated.current = 0;
       playPop();
-      speak(`짠! ${ball.tts}`);
+      speak(ball.label);
       const sp = Array.from({ length: 12 }, (_, i) => ({
         id: i,
         x: 50 + (Math.random() - 0.5) * 40,

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { addScore } from '../utils/storage';
-import { speakCute as speak } from '../utils/tts';
+import { speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
-import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import { playFanfare, playMegaFanfare } from './utils/celebration';
 import { startBGM, stopBGM } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
 
@@ -177,7 +177,6 @@ export default function CompareGame({ onBack }) {
   useEffect(() => { startBGM(); return () => stopBGM(); }, []);
 
   useEffect(() => {
-    setTimeout(() => speak(problem.category.question), 400);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, []);
 
@@ -186,7 +185,6 @@ export default function CompareGame({ onBack }) {
       setShowComplete(true);
       setCelebMode('mega');
       playMegaFanfare();
-      speakComplete();
       return;
     }
     const p = pickProblem(newDiff);
@@ -194,7 +192,6 @@ export default function CompareGame({ onBack }) {
     setSelected(null);
     setIsCorrect(null);
     setQuestionNum((n) => n + 1);
-    setTimeout(() => speak(p.category.question), 400);
   }, [questionNum]);
 
   function handleSelect(side) {
@@ -209,7 +206,7 @@ export default function CompareGame({ onBack }) {
       setStars((s) => s + 1);
       addScore('child2', 'compare', 1);
       playFanfare();
-      speakPraise();
+      speak(problem.category.attribute);
       setCelebMode('big');
 
       let newDiff = difficulty;
@@ -222,7 +219,6 @@ export default function CompareGame({ onBack }) {
       timerRef.current = setTimeout(() => { setCelebMode(null); nextProblem(newDiff); }, 2200);
     } else {
       setStreak(0);
-      speakWrong();
       timerRef.current = setTimeout(() => { setSelected(null); setIsCorrect(null); }, 1500);
     }
   }
@@ -245,7 +241,6 @@ export default function CompareGame({ onBack }) {
         }} onClick={() => {
           setStars(0); setQuestionNum(1); setDifficulty(1); setStreak(0); setShowComplete(false);
           const p = pickProblem(1); setProblem(p); setSelected(null); setIsCorrect(null);
-          setTimeout(() => speak(p.category.question), 400);
         }}>다시 하기</button>
         <button style={{
           padding: '1.5vh 3vw', fontSize: 'min(2.5vw, 22px)', fontWeight: 'bold', borderRadius: 20,

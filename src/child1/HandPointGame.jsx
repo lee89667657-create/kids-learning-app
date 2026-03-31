@@ -150,11 +150,10 @@ export default function HandPointGame({ onBack }) {
               setScore((s) => s + 1);
               addScore('child1', 'handPoint', 1);
               recordWordAttempt('child1', current.word, true);
-              speak('맞았어요! 잘했어요!');
+              speak(current.word);
               setTimeout(() => { setCooldown(false); startRound(category, difficulty); }, 2000);
             } else {
               recordWordAttempt('child1', current.word, false);
-              speak('다시 해봐요!');
               setTimeout(() => {
                 setCooldown(false); setResult(null); resultRef.current = null;
                 setHoverIdx(null); setHoverProgress(0);
@@ -187,10 +186,9 @@ export default function HandPointGame({ onBack }) {
     if (correct) {
       setScore((s) => s + 1);
       addScore('child1', 'handPoint', 1);
-      speak('맞았어요!');
+      speak(current.word);
       setTimeout(() => { setCooldown(false); startRound(category, difficulty); }, 1800);
     } else {
-      speak('다시 해봐요!');
       setTimeout(() => {
         setCooldown(false); setResult(null); resultRef.current = null;
         speak(current.sound);

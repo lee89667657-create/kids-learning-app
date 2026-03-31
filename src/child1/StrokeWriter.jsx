@@ -214,7 +214,7 @@ function LetterMode() {
         <button style={actionBtnStyle('#C8E6C9', '#2E7D32')} onClick={() => {
           recordStrokeLetter('child1', currentLetter);
           setDoneLs((prev) => prev.includes(currentLetter) ? prev : [...prev, currentLetter]);
-          setShowPraise(true); speak('잘 썼어!'); setTimeout(() => setShowPraise(false), 2000);
+          setShowPraise(true); speak(currentLetter); setTimeout(() => setShowPraise(false), 2000);
         }}>완성!</button>
       </div>
       <div style={{ fontSize: 'min(3vw, 28px)', fontWeight: 'bold', color: '#4CAF50', marginTop: '0.5vh', opacity: showPraise ? 1 : 0, transition: 'opacity 0.5s ease', flexShrink: 0, height: 'min(4vh, 32px)' }}>

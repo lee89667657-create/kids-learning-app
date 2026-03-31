@@ -47,7 +47,7 @@ export default function WordMatch({ onBack }) {
     if (correct) {
       setScore((s) => s + 1);
       addScore('child1', 'wordMatch', 1);
-      speak('맞았어!');
+      speak(current.word);
       setTimeout(() => startRound(category), 1500);
     } else {
       setTimeout(() => { setResult(null); speak(current.sound); }, 1000);

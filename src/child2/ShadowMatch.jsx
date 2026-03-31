@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { addScore } from '../utils/storage';
-import { speakCute as speak } from '../utils/tts';
+import { speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
-import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import { playFanfare, playMegaFanfare } from './utils/celebration';
 import useDragDrop from '../hooks/useDragDrop';
 import { startBGM, stopBGM } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
@@ -157,24 +157,23 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
       setTotal((t) => t + 1);
       if (item === round.answer.name) {
         setMatched(true); setScore((s) => s + 1);
-        addScore('child2', 'shadow', 1); playFanfare(); speakPraise();
+        addScore('child2', 'shadow', 1); playFanfare(); speak(round.answer.name);
         setCelebMode('big');
         return 'correct';
       }
-      setWrongSnap(item); speakWrong();
+      setWrongSnap(item);
       setTimeout(() => setWrongSnap(null), 600);
       return 'wrong';
     },
   });
 
-  useEffect(() => { setTimeout(() => speak('동물을 그림자에 올려봐요!'), 400); }, []);
+  useEffect(() => {}, []);
 
   const nextRound = useCallback(() => {
     const c = roundCount + 1; setRoundCount(c);
-    if (c >= 3) { speak('잘했어요! 이제 탈것 게임 해봐요!'); setTimeout(onComplete, 1500); return; }
+    if (c >= 3) { setTimeout(onComplete, 1500); return; }
     const r = pickRound(round.answer.name);
     setRound(r); setMatched(false); setWrongSnap(null);
-    setTimeout(() => speak('동물을 그림자에 올려봐요!'), 300);
   }, [round.answer.name, roundCount, onComplete]);
 
   const drop = makeDropProps('shadow');
@@ -260,7 +259,7 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
   const isRocket = v.id === 'rocket';
 
   useEffect(() => {
-    setTimeout(() => speak(`${v.name}에 동물을 태워봐요! 1번부터!`), 400);
+    setTimeout(() => speak(v.name), 400);
   }, [v.name]);
 
   function nextVehicle() {
@@ -270,7 +269,7 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
     const r = pickVehicleRound(nv.seats, nv.extra);
     setRound(r); setFilled([]); setDeparting(false); setCountdown(null);
     setWrongSnap(null); setDragging(null); setNearSeat(-1);
-    setTimeout(() => speak(ni === 0 ? `다시 ${nv.name}부터! 1번부터 태워봐요!` : `${nv.emoji} ${nv.name}가 왔어요! 1번부터!`), 500);
+    setTimeout(() => speak(nv.name), 500);
   }
 
   function isOverSeat(x, y, i) {
@@ -286,7 +285,7 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
     if (!dragging) return; e.preventDefault();
     const animal = round.cards.find((a) => a.name === dragging);
     if (nearSeat >= 0 && animal) {
-      if (nearSeat !== nextIdx) { speak(`${nextIdx + 1}번부터 채워봐요!`); setDragging(null); setNearSeat(-1); return; }
+      if (nearSeat !== nextIdx) { setDragging(null); setNearSeat(-1); return; }
       setTotal((t) => t + 1);
       if (animal.name === round.seats[nearSeat].name) {
         const nf = [...filled, nearSeat]; setFilled(nf); setScore((s) => s + 1); addScore('child2', 'shadow', 1);
@@ -294,15 +293,14 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
           if (v.id === 'rocket') {
             setCelebMode('mega'); playMegaFanfare();
             let c = 3; setCountdown(c);
-            speak('3!');
-            const iv = setInterval(() => { c--; if (c > 0) { setCountdown(c); speak(`${c}!`); } else { clearInterval(iv); setCountdown(null); speak(v.departTTS); playSfx(v.sfx); setDeparting(true); setTimeout(() => { setCelebMode(null); nextVehicle(); }, 3000); } }, 800);
+            const iv = setInterval(() => { c--; if (c > 0) { setCountdown(c); } else { clearInterval(iv); setCountdown(null); playSfx(v.sfx); setDeparting(true); setTimeout(() => { setCelebMode(null); nextVehicle(); }, 3000); } }, 800);
           } else {
-            playSfx(v.sfx); setCelebMode('mega'); speakComplete();
-            setTimeout(() => { setDeparting(true); speak(v.departTTS); }, 1000);
+            playSfx(v.sfx); setCelebMode('mega');
+            setTimeout(() => { setDeparting(true); }, 1000);
             setTimeout(() => { setCelebMode(null); nextVehicle(); }, 4000);
           }
-        } else { playFanfare(); speakPraise(); setCelebMode('big'); setTimeout(() => setCelebMode(null), 2000); }
-      } else { setWrongSnap(animal.name); speakWrong(); setTimeout(() => setWrongSnap(null), 600); }
+        } else { playFanfare(); speak(animal.name); setCelebMode('big'); setTimeout(() => setCelebMode(null), 2000); }
+      } else { setWrongSnap(animal.name); setTimeout(() => setWrongSnap(null), 600); }
     }
     setDragging(null); setNearSeat(-1);
   }

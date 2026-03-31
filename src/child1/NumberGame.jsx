@@ -35,7 +35,7 @@ export default function NumberGame({ onBack }) {
       setShuffled((prev) => prev.filter((n) => n !== num));
       if (newPlaced.length === 10) {
         setComplete(true);
-        setTimeout(() => speak('잘했어!'), 500);
+        setTimeout(() => speak('10'), 500);
       }
     } else {
       setWrongId(num);

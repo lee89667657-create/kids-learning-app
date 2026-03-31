@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { addScore } from '../utils/storage';
-import { speakCute as speak } from '../utils/tts';
+import { speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
-import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import { playFanfare, playMegaFanfare } from './utils/celebration';
 import useDragDrop from '../hooks/useDragDrop';
 import { startBGM, stopBGM } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
@@ -47,33 +47,29 @@ export default function BagGame({ onBack }) {
         const newPacked = [...packed, item.name];
         setPacked(newPacked);
         addScore('child2', 'bag', 1);
-        playFanfare(); speakPraise();
+        playFanfare(); speak(item.name);
         setCelebMode('big');
         setTimeout(() => setCelebMode(null), 2200);
 
         if (newPacked.length === neededCount) {
           setComplete(true); setFeedback('준비 완료!');
-          setTimeout(() => { setCelebMode('mega'); playMegaFanfare(); speakComplete(); }, 2300);
+          setTimeout(() => { setCelebMode('mega'); playMegaFanfare(); }, 2300);
           setTimeout(() => setCelebMode(null), 5500);
         }
         return 'correct';
       } else {
         setWrongItem(item.name);
         setFeedback(`${item.name}은 학교에 안 가져가요~`);
-        speakWrong();
         setTimeout(() => { setWrongItem(null); setFeedback(''); }, 1500);
         return 'wrong';
       }
     },
   });
 
-  useEffect(() => {
-    setTimeout(() => speak('학교 갈 때 필요한 것만 가방에 넣어요!'), 400);
-  }, []);
+  useEffect(() => {}, []);
 
   function handleReset() {
     setPacked([]); setWrongItem(null); setComplete(false); setFeedback('');
-    setTimeout(() => speak('학교 갈 때 필요한 것만 가방에 넣어요!'), 300);
   }
 
   const bagDrop = makeDropProps('bag');

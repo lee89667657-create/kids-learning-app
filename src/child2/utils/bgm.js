@@ -1,5 +1,3 @@
-import { setBGMDuckCallbacks } from '../../utils/tts';
-
 // ─── 준우 전용 BGM 시스템 (Web Audio API) ───
 
 let ctx = null;
@@ -175,6 +173,3 @@ export function playDrumroll(duration = 1.2) {
     osc.start(t); osc.stop(t + 0.05);
   }
 }
-
-// Register ducking callbacks with TTS
-setBGMDuckCallbacks(duckForTTS, unduckForTTS);
