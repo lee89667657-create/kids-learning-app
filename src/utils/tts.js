@@ -3,6 +3,7 @@ let voicesLoaded = false;
 let lastText = '';
 let lastTime = 0;
 let resumeTimer = null;
+let cancelled = false;
 
 function loadVoices() {
   if (voicesLoaded) return;
@@ -36,9 +37,51 @@ function getBestKoreanVoice() {
   return null;
 }
 
-// Init voice loading
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   loadVoices();
+}
+
+// Split long text into chunks at punctuation/space boundaries
+function splitText(text) {
+  if (text.length <= 10) return [text];
+
+  const parts = text.split(/([,!?~\s]+)/);
+  const chunks = [];
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const last = chunks[chunks.length - 1];
+    if (last && last.length + trimmed.length < 12) {
+      chunks[chunks.length - 1] = last + ' ' + trimmed;
+    } else {
+      chunks.push(trimmed);
+    }
+  }
+
+  return chunks.length > 0 ? chunks : [text];
+}
+
+// Play chunks sequentially
+function playChunks(chunks, options, index) {
+  if (cancelled || index >= chunks.length) {
+    if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+    if (index >= chunks.length) options.onEnd?.();
+    return;
+  }
+
+  const u = new SpeechSynthesisUtterance(chunks[index]);
+  const voice = getBestKoreanVoice();
+  if (voice) u.voice = voice;
+  u.lang = 'ko-KR';
+  u.rate = options.rate ?? 0.85;
+  u.pitch = options.pitch ?? 1.1;
+  u.volume = 1;
+
+  u.onend = () => playChunks(chunks, options, index + 1);
+  u.onerror = () => playChunks(chunks, options, index + 1);
+
+  speechSynthesis.speak(u);
 }
 
 /**
@@ -53,42 +96,29 @@ export function speak(text, options = {}) {
   lastText = text;
   lastTime = now;
 
-  // Cancel and clear previous
+  // Cancel previous
   speechSynthesis.cancel();
+  cancelled = false;
   if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
 
-  // Delay after cancel to avoid Chrome stuttering bug
+  // Delay after cancel to avoid Chrome stuttering
   setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(text);
-    const voice = getBestKoreanVoice();
-    if (voice) u.voice = voice;
-    u.lang = 'ko-KR';
-    u.rate = options.rate ?? 0.85;
-    u.pitch = options.pitch ?? 1.1;
-    u.volume = 1;
+    if (cancelled) return;
 
-    // Chrome bug: long utterances pause after ~15s. Keep resuming.
+    const chunks = splitText(text);
+
+    // Chrome 15s pause bug: resume timer
     resumeTimer = setInterval(() => {
       if (!speechSynthesis.speaking) {
         clearInterval(resumeTimer);
         resumeTimer = null;
         return;
       }
-      if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-      }
+      if (speechSynthesis.paused) speechSynthesis.resume();
     }, 10000);
 
-    u.onend = () => {
-      if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
-      options.onEnd?.();
-    };
-    u.onerror = () => {
-      if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
-    };
-
-    speechSynthesis.speak(u);
-  }, 100);
+    playChunks(chunks, options, 0);
+  }, 150);
 }
 
 /**
@@ -102,8 +132,7 @@ export function speakCute(text, options = {}) {
  * Stop all speech — call in useEffect cleanup
  */
 export function stopSpeech() {
-  if ('speechSynthesis' in window) {
-    speechSynthesis.cancel();
-  }
+  cancelled = true;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
   if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
 }
