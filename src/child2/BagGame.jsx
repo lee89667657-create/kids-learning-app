@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { addScore } from '../utils/storage';
 import { speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
@@ -7,15 +7,73 @@ import useDragDrop from '../hooks/useDragDrop';
 import { startBGM, stopBGM } from './utils/bgm';
 import MuteButton from './utils/MuteButton';
 
-const ITEMS = [
-  { name: '책', emoji: '📖', needed: true },
-  { name: '연필', emoji: '✏️', needed: true },
-  { name: '지우개', emoji: '🧽', needed: true },
-  { name: '물통', emoji: '🥤', needed: true },
-  { name: '실내화', emoji: '👟', needed: true },
-  { name: '장난감', emoji: '🧸', needed: false },
-  { name: '과자', emoji: '🍪', needed: false },
-  { name: '베개', emoji: '🛏️', needed: false },
+const BAG_SCENARIOS = [
+  {
+    title: '🏫 학교 갈 때', bag: '🎒',
+    correct: [
+      { name: '책', emoji: '📖' }, { name: '연필', emoji: '✏️' },
+      { name: '지우개', emoji: '🧽' }, { name: '실내화', emoji: '👟' }, { name: '물통', emoji: '🥤' },
+    ],
+    wrong: [
+      { name: '장난감', emoji: '🧸' }, { name: '과자', emoji: '🍪' },
+      { name: '베개', emoji: '🛏️' }, { name: '이불', emoji: '🛌' },
+    ],
+  },
+  {
+    title: '🏖️ 바다 갈 때', bag: '👜',
+    correct: [
+      { name: '수영복', emoji: '👙' }, { name: '선크림', emoji: '🧴' },
+      { name: '수건', emoji: '🧻' }, { name: '선글라스', emoji: '🕶️' }, { name: '물', emoji: '💧' },
+    ],
+    wrong: [
+      { name: '책', emoji: '📖' }, { name: '연필', emoji: '✏️' },
+      { name: '이불', emoji: '🛌' }, { name: '우산', emoji: '☂️' },
+    ],
+  },
+  {
+    title: '⛺ 캠핑 갈 때', bag: '🧳',
+    correct: [
+      { name: '텐트', emoji: '⛺' }, { name: '랜턴', emoji: '🔦' },
+      { name: '담요', emoji: '🧣' }, { name: '음식', emoji: '🍙' }, { name: '물', emoji: '💧' },
+    ],
+    wrong: [
+      { name: '연필', emoji: '✏️' }, { name: '책', emoji: '📖' },
+      { name: '장난감', emoji: '🧸' }, { name: '쿠션', emoji: '🛋️' },
+    ],
+  },
+  {
+    title: '🏥 병원 갈 때', bag: '👝',
+    correct: [
+      { name: '약', emoji: '💊' }, { name: '보험증', emoji: '💳' },
+      { name: '마스크', emoji: '😷' }, { name: '물', emoji: '💧' }, { name: '수건', emoji: '🧻' },
+    ],
+    wrong: [
+      { name: '장난감', emoji: '🧸' }, { name: '과자', emoji: '🍪' },
+      { name: '축구공', emoji: '⚽' }, { name: '베개', emoji: '🛏️' },
+    ],
+  },
+  {
+    title: '🌧️ 비오는 날', bag: '🎒',
+    correct: [
+      { name: '우산', emoji: '☂️' }, { name: '장화', emoji: '🥾' },
+      { name: '우비', emoji: '🧥' }, { name: '수건', emoji: '🧻' }, { name: '여벌옷', emoji: '👕' },
+    ],
+    wrong: [
+      { name: '선글라스', emoji: '🕶️' }, { name: '부채', emoji: '🪭' },
+      { name: '수영복', emoji: '👙' }, { name: '선크림', emoji: '🧴' },
+    ],
+  },
+  {
+    title: '🎂 생일 파티 갈 때', bag: '🛍️',
+    correct: [
+      { name: '선물', emoji: '🎁' }, { name: '풍선', emoji: '🎈' },
+      { name: '케이크', emoji: '🎂' }, { name: '편지', emoji: '💌' }, { name: '사탕', emoji: '🍬' },
+    ],
+    wrong: [
+      { name: '책', emoji: '📖' }, { name: '연필', emoji: '✏️' },
+      { name: '약', emoji: '💊' }, { name: '마스크', emoji: '😷' },
+    ],
+  },
 ];
 
 function shuffle(arr) {
@@ -24,23 +82,46 @@ function shuffle(arr) {
   return a;
 }
 
-const neededItems = ITEMS.filter((i) => i.needed);
-const neededCount = neededItems.length;
+function pickRound(excludeIdx) {
+  const pool = BAG_SCENARIOS.filter((_, i) => i !== excludeIdx);
+  const scenario = pool[Math.floor(Math.random() * pool.length)];
+  const idx = BAG_SCENARIOS.indexOf(scenario);
+  const correctPick = shuffle(scenario.correct).slice(0, 3 + Math.floor(Math.random() * 3)); // 3~5개
+  const wrongPick = shuffle(scenario.wrong).slice(0, 3 + Math.floor(Math.random() * 2)); // 3~4개
+  const allItems = shuffle([
+    ...correctPick.map((i) => ({ ...i, needed: true })),
+    ...wrongPick.map((i) => ({ ...i, needed: false })),
+  ]);
+  return { idx, scenario, correctPick, allItems };
+}
 
 export default function BagGame({ onBack }) {
-  const [shuffledItems] = useState(() => shuffle(ITEMS));
+  const [round, setRound] = useState(() => pickRound(-1));
   const [packed, setPacked] = useState([]);
   const [wrongItem, setWrongItem] = useState(null);
   const [complete, setComplete] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [celebMode, setCelebMode] = useState(null);
 
+  const { scenario, correctPick, allItems } = round;
+  const neededCount = correctPick.length;
+
   useEffect(() => { startBGM(); return () => stopBGM(); }, []);
+  useEffect(() => { speak(scenario.title); }, [scenario.title]);
+
+  const nextRound = useCallback(() => {
+    const r = pickRound(round.idx);
+    setRound(r);
+    setPacked([]);
+    setWrongItem(null);
+    setComplete(false);
+    setFeedback('');
+  }, [round.idx]);
 
   const { makeDragProps, makeDropProps, dragging, ghostStyle, containerProps, nearZone } = useDragDrop({
     onDrop: (itemName, zoneId) => {
       if (complete || packed.includes(itemName) || wrongItem) return 'ignore';
-      const item = ITEMS.find((i) => i.name === itemName);
+      const item = allItems.find((i) => i.name === itemName);
       if (!item) return 'ignore';
 
       if (item.needed) {
@@ -54,23 +135,17 @@ export default function BagGame({ onBack }) {
         if (newPacked.length === neededCount) {
           setComplete(true); setFeedback('준비 완료!');
           setTimeout(() => { setCelebMode('mega'); playMegaFanfare(); }, 2300);
-          setTimeout(() => setCelebMode(null), 5500);
+          setTimeout(() => { setCelebMode(null); setTimeout(nextRound, 1000); }, 5500);
         }
         return 'correct';
       } else {
         setWrongItem(item.name);
-        setFeedback(`${item.name}은 학교에 안 가져가요~`);
+        setFeedback(`${item.name}은 안 가져가요~`);
         setTimeout(() => { setWrongItem(null); setFeedback(''); }, 1500);
         return 'wrong';
       }
     },
   });
-
-  useEffect(() => {}, []);
-
-  function handleReset() {
-    setPacked([]); setWrongItem(null); setComplete(false); setFeedback('');
-  }
 
   const bagDrop = makeDropProps('bag');
   const isOverBag = nearZone === 'bag';
@@ -85,13 +160,13 @@ export default function BagGame({ onBack }) {
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
-        <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>🎒 가방 채우기</div>
+        <button style={{ fontSize: '3vw', background: 'none', border: 'none', cursor: 'pointer', padding: '2vw', borderRadius: '2vw', color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
+        <div style={{ fontSize: '4vw', fontWeight: 'bold', color: '#5D4E37' }}>{scenario.title}</div>
         <div style={{ width: '8vw' }} />
       </div>
 
       {/* Instruction */}
-      <div style={{ fontSize: 'min(3.5vw, 30px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1vh', flexShrink: 0, textAlign: 'center' }}>
+      <div style={{ fontSize: '3.5vw', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1vh', flexShrink: 0, textAlign: 'center' }}>
         {complete ? '준비 완료! 🎉' : '필요한 것을 가방에 끌어다 놓아요!'}
       </div>
 
@@ -100,7 +175,6 @@ export default function BagGame({ onBack }) {
         {/* Left: Bag (drop zone) */}
         <div ref={bagDrop.ref} style={{
           width: '48vw',
-          height: '90vh',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           backgroundColor: isOverBag ? '#EDE7F6' : '#F3E5F5',
           borderRadius: '2vw',
@@ -111,32 +185,32 @@ export default function BagGame({ onBack }) {
           padding: '2vh',
         }}>
           {/* Bag emoji */}
-          <div style={{ fontSize: 'min(18vw, 18vh)' }}>🎒</div>
+          <div style={{ fontSize: '18vw' }}>{scenario.bag}</div>
 
           {/* Hint slots */}
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 'min(1.5vw, 12px)', width: '80%', maxWidth: 'min(40vw, 300px)',
+            display: 'grid', gridTemplateColumns: `repeat(${Math.min(correctPick.length, 3)}, 1fr)`,
+            gap: '1.5vw', width: '80%', maxWidth: '40vw',
           }}>
-            {neededItems.map((item) => {
+            {correctPick.map((item) => {
               const isPacked = packed.includes(item.name);
               return (
                 <div key={item.name} style={{
                   aspectRatio: '1',
-                  borderRadius: 'min(1.5vw, 12px)',
+                  borderRadius: '1.5vw',
                   border: isPacked ? '3px solid #A5D6A7' : '3px dashed #D4C5B0',
                   backgroundColor: isPacked ? '#E8F5E9' : 'rgba(255,255,255,0.3)',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.3s ease',
                 }}>
                   <span style={{
-                    fontSize: 'min(5vw, 40px)', lineHeight: 1,
-                    filter: isPacked ? 'none' : 'brightness(0)',
-                    opacity: isPacked ? 1 : 0.15,
+                    fontSize: '5vw', lineHeight: 1,
+                    filter: isPacked ? 'none' : 'brightness(0) contrast(2)',
+                    opacity: isPacked ? 1 : 0.4,
                     transition: 'all 0.3s ease',
                   }}>{item.emoji}</span>
                   <span style={{
-                    fontSize: 'min(1.5vw, 12px)', color: isPacked ? '#4CAF50' : '#B0A090',
+                    fontSize: '1.5vw', color: isPacked ? '#4CAF50' : '#B0A090',
                     fontWeight: 'bold', marginTop: '0.3vh',
                   }}>{item.name}</span>
                 </div>
@@ -145,7 +219,7 @@ export default function BagGame({ onBack }) {
           </div>
 
           {/* Count */}
-          <div style={{ fontSize: 'min(2.5vw, 20px)', color: '#7A6B5D', fontWeight: 'bold' }}>
+          <div style={{ fontSize: '2.5vw', color: '#7A6B5D', fontWeight: 'bold' }}>
             {packed.length} / {neededCount}
           </div>
         </div>
@@ -154,11 +228,10 @@ export default function BagGame({ onBack }) {
         <div style={{
           width: '45%', display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
-          gridTemplateRows: 'repeat(4, 1fr)',
-          gap: 'min(1.2vw, 10px)',
+          gap: '1.2vw',
           alignContent: 'center',
         }}>
-          {shuffledItems.map((item) => {
+          {allItems.map((item) => {
             const isPacked = packed.includes(item.name);
             const isWrong = wrongItem === item.name;
             const isDragged = dragging === item.name;
@@ -176,8 +249,8 @@ export default function BagGame({ onBack }) {
                 animation: isWrong ? 'shake 0.4s ease-in-out' : 'none',
                 zIndex: isDragged ? 100 : 1,
               }}>
-                <span style={{ fontSize: 'min(6vw, 44px)', lineHeight: 1, pointerEvents: 'none' }}>{item.emoji}</span>
-                <span style={{ fontSize: 'min(2vw, 16px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{item.name}</span>
+                <span style={{ fontSize: '6vw', lineHeight: 1, pointerEvents: 'none' }}>{item.emoji}</span>
+                <span style={{ fontSize: '2vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{item.name}</span>
               </div>
             );
           })}
@@ -186,17 +259,14 @@ export default function BagGame({ onBack }) {
 
       {/* Ghost */}
       {dragging && ghostStyle && (() => {
-        const item = ITEMS.find((i) => i.name === dragging);
-        return item ? <div style={{ ...ghostStyle, fontSize: 'min(10vw, 80px)', lineHeight: 1 }}>{item.emoji}</div> : null;
+        const item = allItems.find((i) => i.name === dragging);
+        return item ? <div style={{ ...ghostStyle, fontSize: '10vw', lineHeight: 1 }}>{item.emoji}</div> : null;
       })()}
 
-      {/* Feedback / Reset */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3vw', marginTop: '1vh', flexShrink: 0, minHeight: 'min(5vh, 40px)' }}>
+      {/* Feedback */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3vw', marginTop: '1vh', flexShrink: 0, minHeight: '5vh' }}>
         {feedback && (
-          <div style={{ fontSize: 'min(2.5vw, 22px)', fontWeight: 'bold', color: complete ? '#4CAF50' : '#E65100' }}>{feedback}</div>
-        )}
-        {complete && (
-          <button style={{ padding: '1vh 3vw', fontSize: 'min(2.5vw, 22px)', fontWeight: 'bold', borderRadius: 20, border: 'none', cursor: 'pointer', backgroundColor: '#B5D8F7', color: '#1565C0' }} onClick={handleReset}>다시 하기</button>
+          <div style={{ fontSize: '2.5vw', fontWeight: 'bold', color: complete ? '#4CAF50' : '#E65100' }}>{feedback}</div>
         )}
       </div>
     </div>
