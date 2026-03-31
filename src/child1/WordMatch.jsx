@@ -2,18 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { categories, getWordsByCategory, getAllWords } from '../data/words';
 import { recordWordAttempt, addScore } from '../utils/storage';
 import ImageWithEdit from '../components/ImageWithEdit';
-
-function speak(text, onEnd) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.75;
-    u.pitch = 1.1;
-    if (onEnd) u.onend = onEnd;
-    window.speechSynthesis.speak(u);
-  }
-}
+import { speak } from '../utils/tts';
 
 function pickChoices(correctWord, pool) {
   const others = pool.filter((w) => w.word !== correctWord.word).sort(() => Math.random() - 0.5).slice(0, 3);

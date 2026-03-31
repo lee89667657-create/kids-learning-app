@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { recordStrokeLetter, getStrokeLetters } from '../utils/storage';
 import { categories, getWordsByCategory } from '../data/words';
 import ImageWithEdit from '../components/ImageWithEdit';
+import { speak } from '../utils/tts';
 
 const CONSONANTS = {
   ㄱ: { strokes: [[{ x: 25, y: 25 }, { x: 75, y: 25 }, { x: 75, y: 80 }]] },
@@ -27,16 +28,6 @@ const ALL_LETTERS = { ...CONSONANTS, ...VOWELS };
 
 // Canvas internal resolution (CSS scales it responsively)
 const CANVAS_RES = 500;
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.8;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 function getLineWidth(pressure, pointerType) {
   if (pointerType === 'pen' && pressure > 0) return 4 + pressure * 6;

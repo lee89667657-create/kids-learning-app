@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { speak } from '../utils/tts';
 
 function shuffle(arr) {
   const a = [...arr];
@@ -7,16 +8,6 @@ function shuffle(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
-}
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.8;
-    window.speechSynthesis.speak(u);
-  }
 }
 
 export default function NumberGame({ onBack }) {

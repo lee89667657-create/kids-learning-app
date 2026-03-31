@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { addScore } from '../utils/storage';
+import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
 
@@ -140,17 +141,6 @@ const CATEGORIES = [
     },
   },
 ];
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.75;
-    u.pitch = 1.1;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 function pickProblem(difficulty) {
   const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];

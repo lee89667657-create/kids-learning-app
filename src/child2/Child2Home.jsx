@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { speakCute as speak } from '../utils/tts';
 
 const BALLS = [
   { id: 'compare', emoji: '📏', label: '비교 게임', color: '#FFD54F', tts: '비교 게임이 나왔어요!' },
@@ -6,15 +7,6 @@ const BALLS = [
   { id: 'path', emoji: '〰️', label: '길 이어주기', color: '#90CAF9', tts: '길 이어주기가 나왔어요!' },
   { id: 'pack', emoji: '🎒', label: '가방 채우기', color: '#CE93D8', tts: '가방 채우기가 나왔어요!' },
 ];
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.8; u.pitch = 1.2;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 function playPop() {
   try {

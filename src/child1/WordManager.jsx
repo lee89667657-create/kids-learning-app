@@ -4,6 +4,7 @@ import {
   saveCustomImage, deleteCustomImage, getAllCustomImages,
   addCustomWord, deleteCustomWord, updateCustomWord,
 } from '../utils/storage';
+import { speak } from '../utils/tts';
 
 function resizeImage(file, maxBytes = 500 * 1024) {
   return new Promise((resolve) => {
@@ -27,14 +28,7 @@ function resizeImage(file, maxBytes = 500 * 1024) {
   });
 }
 
-function speakWord(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.8;
-    window.speechSynthesis.speak(u);
-  }
-}
+function speakWord(text) { speak(text); }
 
 const input = {
   padding: '1vh 1.2vw', borderRadius: 12, border: '2px solid #D4C5B0',

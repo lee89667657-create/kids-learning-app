@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { addScore } from '../utils/storage';
+import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, playFanfare } from './utils/celebration';
 
@@ -13,15 +14,6 @@ const ANIMALS = [
   { name: '곰', emoji: '🐻' },
   { name: '사자', emoji: '🦁' },
 ];
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.75; u.pitch = 1.1;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 function shuffle(arr) {
   const a = [...arr];

@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { categories, getWordsByCategory, getAllWords } from '../data/words';
 import { getCustomImage, addScore, recordWordAttempt } from '../utils/storage';
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.75; u.pitch = 1.1;
-    window.speechSynthesis.speak(u);
-  }
-}
+import { speak } from '../utils/tts';
 
 function pickChoices(answer, pool, count) {
   const others = pool.filter((w) => w.word !== answer.word).sort(() => Math.random() - 0.5).slice(0, count - 1);

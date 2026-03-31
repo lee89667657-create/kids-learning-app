@@ -1,3 +1,5 @@
+import { speakCute } from '../../utils/tts';
+
 // ─── TTS ───
 const PRAISE_LINES = [
   '와! 대단해요! 준우 최고!',
@@ -16,28 +18,16 @@ const COMPLETE_LINES = [
 
 export function speakPraise() {
   const text = PRAISE_LINES[Math.floor(Math.random() * PRAISE_LINES.length)];
-  speak(text);
+  speakCute(text);
 }
 
 export function speakComplete() {
   const text = COMPLETE_LINES[Math.floor(Math.random() * COMPLETE_LINES.length)];
-  speak(text);
+  speakCute(text);
 }
 
 export function speakWrong() {
-  speak('괜찮아~ 다시 해봐요!');
-}
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.8;
-    u.pitch = 1.2;
-    u.volume = 1;
-    window.speechSynthesis.speak(u);
-  }
+  speakCute('괜찮아~ 다시 해봐요!');
 }
 
 // ─── Fanfare (Web Audio API) ───

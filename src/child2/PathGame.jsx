@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { addScore } from '../utils/storage';
+import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, playFanfare } from './utils/celebration';
 
@@ -14,15 +15,6 @@ const LEVELS = [
 ];
 
 const CANVAS_RES = 500;
-
-function speak(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR'; u.rate = 0.75; u.pitch = 1.1;
-    window.speechSynthesis.speak(u);
-  }
-}
 
 function dist(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
