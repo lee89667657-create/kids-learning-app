@@ -101,17 +101,32 @@ export default function BagGame({ onBack }) {
           border: complete ? '4px solid #A5D6A7' : '4px solid transparent',
           transition: 'border 0.3s ease',
         }}>
-          <div style={{ fontSize: 'min(10vw, 80px)', marginBottom: '1vh' }}>🎒</div>
-          {/* Packed items inside bag */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5vw', justifyContent: 'center', maxWidth: '80%' }}>
-            {packed.map((name) => {
-              const item = ITEMS.find((i) => i.name === name);
+          <div style={{ fontSize: 'min(7vw, 56px)', marginBottom: '1vh' }}>🎒</div>
+          {/* Hint slots: silhouettes for needed items */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'min(1vw, 8px)', justifyContent: 'center', maxWidth: '90%' }}>
+            {ITEMS.filter((i) => i.needed).map((item) => {
+              const isPacked = packed.includes(item.name);
               return (
-                <span key={name} style={{ fontSize: 'min(3.5vw, 28px)' }}>{item?.emoji}</span>
+                <div key={item.name} style={{
+                  width: 'min(5vw, 44px)', height: 'min(5vw, 44px)',
+                  borderRadius: 'min(1vw, 8px)',
+                  border: isPacked ? '2px solid #A5D6A7' : '2px dashed #D4C5B0',
+                  backgroundColor: isPacked ? '#E8F5E9' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                }}>
+                  <span style={{
+                    fontSize: 'min(3.5vw, 28px)',
+                    lineHeight: 1,
+                    filter: isPacked ? 'none' : 'brightness(0)',
+                    opacity: isPacked ? 1 : 0.15,
+                    transition: 'all 0.3s ease',
+                  }}>{item.emoji}</span>
+                </div>
               );
             })}
           </div>
-          <div style={{ fontSize: 'min(2vw, 16px)', color: '#7A6B5D', marginTop: '0.5vh' }}>
+          <div style={{ fontSize: 'min(1.8vw, 14px)', color: '#7A6B5D', marginTop: '0.5vh' }}>
             {packed.length} / {neededCount}
           </div>
         </div>
