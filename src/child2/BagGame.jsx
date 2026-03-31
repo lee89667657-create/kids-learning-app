@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { addScore } from '../utils/storage';
+import CelebrationOverlay from './utils/CelebrationOverlay';
+import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
 
 const ITEMS = [
   { name: '책', emoji: '📖', needed: true },
@@ -36,6 +38,7 @@ export default function BagGame({ onBack }) {
   const [wrongItem, setWrongItem] = useState(null);
   const [complete, setComplete] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [celebMode, setCelebMode] = useState(null);
 
   const neededCount = ITEMS.filter((i) => i.needed).length;
 
@@ -49,18 +52,22 @@ export default function BagGame({ onBack }) {
     if (item.needed) {
       const newPacked = [...packed, item.name];
       setPacked(newPacked);
-      speak(item.name);
       addScore('child2', 'bag', 1);
+      playFanfare();
+      speakPraise();
+      setCelebMode('big');
+      setTimeout(() => setCelebMode(null), 2200);
 
       if (newPacked.length === neededCount) {
         setComplete(true);
         setFeedback('준비 완료!');
-        setTimeout(() => speak('준비 완료! 학교 갈 준비 됐어요!'), 500);
+        setTimeout(() => { setCelebMode('mega'); playMegaFanfare(); speakComplete(); }, 2300);
+        setTimeout(() => setCelebMode(null), 5500);
       }
     } else {
       setWrongItem(item.name);
       setFeedback(`${item.name}은 학교에 안 가져가요~`);
-      speak(`${item.name}은 학교에 안 가져가요`);
+      speakWrong();
       setTimeout(() => { setWrongItem(null); setFeedback(''); }, 1500);
     }
   }
@@ -78,6 +85,7 @@ export default function BagGame({ onBack }) {
       height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
+      <CelebrationOverlay mode={celebMode} score={packed.length} onDone={() => setCelebMode(null)} />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>

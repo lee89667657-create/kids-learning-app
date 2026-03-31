@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { addScore } from '../utils/storage';
+import CelebrationOverlay from './utils/CelebrationOverlay';
+import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
 
 // ─── Problem Data ───
 // Each category has: question, attribute, pairs with SVG renderers
@@ -177,6 +179,7 @@ export default function CompareGame({ onBack }) {
   const [questionNum, setQuestionNum] = useState(1);
   const [showComplete, setShowComplete] = useState(false);
   const [showStarAnim, setShowStarAnim] = useState(false);
+  const [celebMode, setCelebMode] = useState(null);
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -187,7 +190,9 @@ export default function CompareGame({ onBack }) {
   const nextProblem = useCallback((newDiff) => {
     if (questionNum >= TOTAL_QUESTIONS) {
       setShowComplete(true);
-      speak('대단해요! 다 했어요!');
+      setCelebMode('mega');
+      playMegaFanfare();
+      speakComplete();
       return;
     }
     const p = pickProblem(newDiff);
@@ -208,10 +213,10 @@ export default function CompareGame({ onBack }) {
       const newStreak = streak + 1;
       setStreak(newStreak);
       setStars((s) => s + 1);
-      setShowStarAnim(true);
-      setTimeout(() => setShowStarAnim(false), 800);
       addScore('child2', 'compare', 1);
-      speak('맞았어요! 잘했어요!');
+      playFanfare();
+      speakPraise();
+      setCelebMode('big');
 
       let newDiff = difficulty;
       if (newStreak >= 3 && difficulty < 3) {
@@ -220,15 +225,11 @@ export default function CompareGame({ onBack }) {
         setStreak(0);
       }
 
-      timerRef.current = setTimeout(() => nextProblem(newDiff), 1800);
+      timerRef.current = setTimeout(() => { setCelebMode(null); nextProblem(newDiff); }, 2200);
     } else {
       setStreak(0);
-      speak('다시 해봐요!');
-      // Hint: after 1.5s allow retry
-      timerRef.current = setTimeout(() => {
-        setSelected(null);
-        setIsCorrect(null);
-      }, 1500);
+      speakWrong();
+      timerRef.current = setTimeout(() => { setSelected(null); setIsCorrect(null); }, 1500);
     }
   }
 
@@ -238,8 +239,9 @@ export default function CompareGame({ onBack }) {
         height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden', gap: '3vh',
       }}>
+        <CelebrationOverlay mode={celebMode} score={stars} onDone={() => setCelebMode(null)} />
         <div style={{ fontSize: 'min(8vw, 60px)' }}>🎉</div>
-        <div style={{ fontSize: 'min(5vw, 44px)', fontWeight: 'bold', color: '#5D4E37' }}>대단해요!</div>
+        <div style={{ fontSize: 'min(5vw, 44px)', fontWeight: 'bold', color: '#5D4E37' }}>준우 완전 최고야!!!</div>
         <div style={{ fontSize: 'min(3vw, 28px)', color: '#7A6B5D' }}>
           {'⭐'.repeat(stars)} ({stars}/{TOTAL_QUESTIONS})
         </div>
@@ -311,6 +313,7 @@ export default function CompareGame({ onBack }) {
       height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
+      <CelebrationOverlay mode={celebMode} score={stars} onDone={() => setCelebMode(null)} />
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
