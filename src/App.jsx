@@ -8,6 +8,9 @@ import StrokeWriter from './child1/StrokeWriter';
 import WordManager from './child1/WordManager';
 import Child2Home from './child2/Child2Home';
 import CompareGame from './child2/CompareGame';
+import ShadowMatch from './child2/ShadowMatch';
+import PathGame from './child2/PathGame';
+import BagGame from './child2/BagGame';
 
 export default function App() {
   const [screen, setScreen] = useState('profile');
@@ -42,6 +45,9 @@ export default function App() {
       {/* Child 2 screens */}
       {screen === 'child2Home' && <Child2Home onNavigate={handleNavigate2} onBack={() => setScreen('profile')} />}
       {screen === 'compare' && <CompareGame onBack={() => setScreen('child2Home')} />}
+      {screen === 'shadow' && <ShadowMatch onBack={() => setScreen('child2Home')} />}
+      {screen === 'path' && <PathGame onBack={() => setScreen('child2Home')} />}
+      {screen === 'pack' && <BagGame onBack={() => setScreen('child2Home')} />}
     </div>
   );
 }
