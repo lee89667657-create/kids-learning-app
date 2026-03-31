@@ -42,29 +42,29 @@ const VEHICLES = [
     departTTS: '출발~! 부릉부릉!',
     departTransform: 'translateX(120vw)',
     departDuration: '2s', sfx: 'honk',
-    svgW: '85vw', svgH: '50vh',
+    svgW: '90vw', svgH: '45vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
-      <svg viewBox="0 0 340 140" style={{ width: '100%', height: '100%' }}>
-        {/* Body */}
-        <rect x="10" y="10" width="300" height="85" rx="18" fill="#FFB74D" stroke="#F57C00" strokeWidth="3" />
-        <rect x="15" y="4" width="290" height="12" rx="6" fill="#FFA726" />
+      <svg viewBox="0 0 400 200" style={{ width: '100%', height: '100%' }}>
+        {/* Body - taller */}
+        <rect x="10" y="10" width="360" height="130" rx="20" fill="#FFB74D" stroke="#F57C00" strokeWidth="3" />
+        <rect x="15" y="4" width="350" height="14" rx="7" fill="#FFA726" />
         {/* Driver */}
-        <rect x="280" y="22" width="28" height="58" rx="9" fill="#FFE0B2" stroke="#F57C00" strokeWidth="2" />
-        <text x="294" y="58" textAnchor="middle" fontSize="22">🧑‍✈️</text>
-        <circle cx="315" cy="80" r="5" fill="#FFF9C4" stroke="#FBC02D" strokeWidth="1.5" />
+        <rect x="335" y="22" width="32" height="100" rx="10" fill="#FFE0B2" stroke="#F57C00" strokeWidth="2" />
+        <text x="351" y="75" textAnchor="middle" fontSize="28">🧑‍✈️</text>
+        <circle cx="375" cy="115" r="6" fill="#FFF9C4" stroke="#FBC02D" strokeWidth="1.5" />
         {/* Wheels */}
-        <circle cx="70" cy="105" r="16" fill="#5D4037" stroke="#3E2723" strokeWidth="3">
-          {driving && <animateTransform attributeName="transform" type="rotate" values="0 70 105;360 70 105" dur="0.4s" repeatCount="indefinite" />}
+        <circle cx="80" cy="155" r="20" fill="#5D4037" stroke="#3E2723" strokeWidth="3.5">
+          {driving && <animateTransform attributeName="transform" type="rotate" values="0 80 155;360 80 155" dur="0.4s" repeatCount="indefinite" />}
         </circle>
-        <circle cx="240" cy="105" r="16" fill="#5D4037" stroke="#3E2723" strokeWidth="3">
-          {driving && <animateTransform attributeName="transform" type="rotate" values="0 240 105;360 240 105" dur="0.4s" repeatCount="indefinite" />}
+        <circle cx="290" cy="155" r="20" fill="#5D4037" stroke="#3E2723" strokeWidth="3.5">
+          {driving && <animateTransform attributeName="transform" type="rotate" values="0 290 155;360 290 155" dur="0.4s" repeatCount="indefinite" />}
         </circle>
-        {/* Windows (big) */}
-        {seats.map((a, i) => { const wx = 30 + i * 110; const f = filled.includes(i); const n = i === filled.length && !driving; return (
-          <g key={i}><rect ref={el => { seatRefs.current[i] = el; }} x={wx} y="20" width="80" height="60" rx="10" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#E3F2FD'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#90CAF9'} strokeWidth={n ? 3 : 2} strokeDasharray={f ? 'none' : '5,4'} />
-          {f ? <text x={wx+40} y="58" textAnchor="middle" fontSize="32" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
-             : <text x={wx+40} y="58" textAnchor="middle" fontSize="32" style={{filter:'brightness(0)',opacity:nearSeat===i?0.4:0.15}}>{a.emoji}</text>}
-          <text x={wx+40} y="88" textAnchor="middle" fontSize="12" fill="#7A6B5D" fontWeight="bold">{i+1}</text></g>
+        {/* Windows (very big) */}
+        {seats.map((a, i) => { const wx = 25 + i * 150; const f = filled.includes(i); const n = i === filled.length && !driving; return (
+          <g key={i}><rect ref={el => { seatRefs.current[i] = el; }} x={wx} y="18" width="130" height="100" rx="14" fill={f ? '#E8F5E9' : n ? '#FFF8E1' : '#E3F2FD'} stroke={f ? '#A5D6A7' : n ? '#FFA726' : '#90CAF9'} strokeWidth={n ? 4 : 3} strokeDasharray={f ? 'none' : '8,6'} />
+          {f ? <text x={wx+65} y="82" textAnchor="middle" fontSize="55" style={{animation:'snapIn 0.4s ease-out'}}>{a.emoji}</text>
+             : <text x={wx+65} y="82" textAnchor="middle" fontSize="55" style={{filter:'brightness(0) contrast(2)',opacity:nearSeat===i?0.7:0.6}}>{a.emoji}</text>}
+          <text x={wx+65} y="128" textAnchor="middle" fontSize="14" fill="#7A6B5D" fontWeight="bold">{i+1}</text></g>
         ); })}
       </svg>
     ),
@@ -309,7 +309,7 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
 
   function cardStyle(animal) {
     const placed = filled.some((fi) => round.seats[fi]?.name === animal.name);
-    const s = { width: '20vw', height: '20vw', borderRadius: '2vw', border: '3px solid transparent', backgroundColor: isRocket ? 'rgba(255,255,255,0.9)' : '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh', boxShadow: '0 3px 10px rgba(0,0,0,0.1)', cursor: placed ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === animal.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === animal.name ? 100 : 1, opacity: placed ? 0.3 : 1 };
+    const s = { width: '22vw', height: '22vw', borderRadius: '2vw', border: '3px solid transparent', backgroundColor: isRocket ? 'rgba(255,255,255,0.9)' : '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh', boxShadow: '0 3px 10px rgba(0,0,0,0.1)', cursor: placed ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === animal.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === animal.name ? 100 : 1, opacity: placed ? 0.3 : 1 };
     if (dragging === animal.name) { const o = cardOrigins.current[animal.name]; if (o) { s.transform = `translate(${dragPos.x-o.x-35}px,${dragPos.y-o.y-35}px) scale(1.1)`; s.boxShadow = '0 10px 28px rgba(0,0,0,0.25)'; } }
     if (wrongSnap === animal.name) s.animation = 'shake 0.4s ease-in-out';
     return s;
@@ -357,10 +357,10 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
         </div>
       </div>
 
-      {/* Vehicle area: 55vh */}
+      {/* Vehicle area: 50vh */}
       <div style={{
-        height: '55vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, position: 'relative', zIndex: 5,
+        height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, position: 'relative', zIndex: 5, padding: 0,
       }}>
         <div style={{
           width: v.svgW, height: v.svgH,
@@ -371,18 +371,18 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
         </div>
       </div>
 
-      {/* Cards area: 35vh */}
+      {/* Cards area: 40vh */}
       <div style={{
-        height: '35vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0, position: 'relative', zIndex: 10,
         backgroundColor: isRocket ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(4px)',
+        backdropFilter: 'blur(4px)', padding: 0,
       }}>
-        <div style={{ display: 'flex', gap: '3vw', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2vw', justifyContent: 'center', alignItems: 'center' }}>
           {round.cards.map((a) => {
             const placed = filled.some((fi) => round.seats[fi]?.name === a.name);
             return <div key={a.name} style={cardStyle(a)} onPointerDown={(e) => !placed && onDown(e, a)}>
-              <span style={{ fontSize: '8vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
+              <span style={{ fontSize: '10vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
               <span style={{ fontSize: '2.5vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
             </div>;
           })}
