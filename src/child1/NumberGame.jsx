@@ -1,107 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#FFF9F0',
-    padding: 24,
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    maxWidth: 500,
-    marginBottom: 24,
-  },
-  backBtn: {
-    fontSize: 28,
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: 12,
-    borderRadius: 16,
-    color: '#5D4E37',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#5D4E37',
-  },
-  instruction: {
-    fontSize: 28,
-    color: '#7A6B5D',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  numbersRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'center',
-    maxWidth: 500,
-    marginBottom: 32,
-  },
-  numberBtn: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    border: '3px solid transparent',
-    fontSize: 36,
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placedRow: {
-    display: 'flex',
-    gap: 8,
-    marginBottom: 32,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  placedSlot: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    border: '3px dashed #D4C5B0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#5D4E37',
-    backgroundColor: '#FFF3E0',
-    transition: 'all 0.3s ease',
-  },
-  filledSlot: {
-    border: '3px solid #A5D6A7',
-    backgroundColor: '#E8F5E9',
-  },
-  completeMsg: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginTop: 24,
-    animation: 'none',
-  },
-  resetBtn: {
-    marginTop: 20,
-    padding: '16px 40px',
-    fontSize: 24,
-    fontWeight: 'bold',
-    borderRadius: 24,
-    border: 'none',
-    backgroundColor: '#B5D8F7',
-    color: '#2C5F8A',
-    cursor: 'pointer',
-  },
-};
+import { useState, useCallback } from 'react';
 
 function shuffle(arr) {
   const a = [...arr];
@@ -156,67 +53,120 @@ export default function NumberGame({ onBack }) {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={onBack}>
-          ← 뒤로
-        </button>
-        <div style={styles.title}>🔢 숫자놀이</div>
-        <div style={{ width: 60 }} />
+    <div style={{
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      backgroundColor: '#FFF9F0',
+      padding: '2vh 3vw',
+      overflow: 'hidden',
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: '1.5vh',
+        flexShrink: 0,
+      }}>
+        <button style={{
+          fontSize: 'min(3vw, 28px)',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '1vh 1vw',
+          borderRadius: 16,
+          color: '#5D4E37',
+        }} onClick={onBack}>← 뒤로</button>
+        <div style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>🔢 숫자놀이</div>
+        <div style={{ width: '8vw' }} />
       </div>
 
-      <div style={styles.instruction}>
+      {/* Instruction */}
+      <div style={{
+        fontSize: 'min(3vw, 28px)',
+        color: '#7A6B5D',
+        marginBottom: '2vh',
+        textAlign: 'center',
+        flexShrink: 0,
+      }}>
         {complete ? '' : `${nextExpected}을 찾아봐!`}
       </div>
 
-      <div style={styles.placedRow}>
+      {/* Placed slots */}
+      <div style={{
+        display: 'flex',
+        gap: 'min(1vw, 8px)',
+        marginBottom: '2vh',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
         {numbers.map((n) => (
-          <div
-            key={n}
-            style={{
-              ...styles.placedSlot,
-              ...(placed.includes(n) ? styles.filledSlot : {}),
-            }}
-          >
+          <div key={n} style={{
+            width: 'min(7vw, 60px)',
+            height: 'min(7vw, 60px)',
+            borderRadius: 'min(1.5vw, 16px)',
+            border: placed.includes(n) ? '3px solid #A5D6A7' : '3px dashed #D4C5B0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 'min(3vw, 30px)',
+            fontWeight: 'bold',
+            color: '#5D4E37',
+            backgroundColor: placed.includes(n) ? '#E8F5E9' : '#FFF3E0',
+            transition: 'all 0.3s ease',
+          }}>
             {placed.includes(n) ? n : ''}
           </div>
         ))}
       </div>
 
-      {!complete && (
-        <div style={styles.numbersRow}>
+      {/* Number buttons or complete */}
+      {!complete ? (
+        <div style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+          gap: 'min(2vw, 16px)',
+          width: '80%',
+          maxWidth: 600,
+        }}>
           {shuffled.map((num) => (
-            <button
-              key={num}
-              style={{
-                ...styles.numberBtn,
-                backgroundColor:
-                  wrongId === num ? '#FFCDD2' : '#E3F2FD',
-                color: '#2C5F8A',
-                transform:
-                  wrongId === num
-                    ? 'translateX(-4px)'
-                    : 'translateX(0)',
-                animation:
-                  wrongId === num
-                    ? 'shake 0.3s ease-in-out'
-                    : 'none',
-              }}
-              onClick={() => handlePick(num)}
-            >
+            <button key={num} style={{
+              borderRadius: 'min(2.5vw, 24px)',
+              border: '3px solid transparent',
+              fontSize: 'min(4vw, 36px)',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: wrongId === num ? '#FFCDD2' : '#E3F2FD',
+              color: '#2C5F8A',
+              transition: 'all 0.3s ease',
+              animation: wrongId === num ? 'shake 0.3s ease-in-out' : 'none',
+            }} onClick={() => handlePick(num)}>
               {num}
             </button>
           ))}
         </div>
-      )}
-
-      {complete && (
-        <>
-          <div style={styles.completeMsg}>잘했어! 🌟</div>
-          <button style={styles.resetBtn} onClick={reset}>
-            다시 하기
-          </button>
-        </>
+      ) : (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3vh' }}>
+          <div style={{ fontSize: 'min(4vw, 36px)', fontWeight: 'bold', color: '#4CAF50' }}>잘했어! 🌟</div>
+          <button style={{
+            padding: '2vh 5vw',
+            fontSize: 'min(3vw, 24px)',
+            fontWeight: 'bold',
+            borderRadius: 24,
+            border: 'none',
+            backgroundColor: '#B5D8F7',
+            color: '#2C5F8A',
+            cursor: 'pointer',
+          }} onClick={reset}>다시 하기</button>
+        </div>
       )}
     </div>
   );

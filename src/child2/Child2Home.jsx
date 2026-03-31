@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 const activities = [
-  { id: 'number', emoji: '🔢', label: '숫자놀이', color: '#C8E6C9' },
-  { id: 'sound', emoji: '🎵', label: '소리패턴', color: '#BBDEFB' },
-  { id: 'word', emoji: '🗣️', label: '단어 듣기', color: '#FFE0B2' },
-  { id: 'stroke', emoji: '✏️', label: '한글 쓰기', color: '#E1BEE7' },
+  { id: 'compare', emoji: '📏', label: '길이 비교', color: '#BBDEFB' },
+  { id: 'shadow', emoji: '🐾', label: '그림자 맞추기', color: '#C8E6C9' },
+  { id: 'path', emoji: '〰️', label: '길 이어주기', color: '#FFE0B2' },
+  { id: 'pack', emoji: '🎒', label: '가방 채우기', color: '#F3E5F5' },
 ];
 
-export default function Child1Home({ onNavigate, onBack }) {
+export default function Child2Home({ onNavigate, onBack }) {
   const [hovered, setHovered] = useState(null);
 
   return (
@@ -59,7 +59,7 @@ export default function Child1Home({ onNavigate, onBack }) {
             style={{
               borderRadius: 'min(3vw, 28px)',
               border: 'none',
-              fontSize: 'min(3vw, 28px)',
+              fontSize: 'min(3.5vw, 30px)',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
@@ -77,29 +77,11 @@ export default function Child1Home({ onNavigate, onBack }) {
             onMouseLeave={() => setHovered(null)}
             onClick={() => onNavigate(act.id)}
           >
-            <span style={{ fontSize: 'min(7vw, 52px)' }}>{act.emoji}</span>
+            <span style={{ fontSize: 'min(8vw, 60px)' }}>{act.emoji}</span>
             <span>{act.label}</span>
           </button>
         ))}
       </div>
-
-      <button
-        style={{
-          marginTop: '1.5vh',
-          padding: '1vh 2vw',
-          borderRadius: 16,
-          border: '2px solid #D4C5B0',
-          backgroundColor: '#FFF3E0',
-          fontSize: 'min(2vw, 16px)',
-          color: '#7A6B5D',
-          cursor: 'pointer',
-          alignSelf: 'center',
-          flexShrink: 0,
-        }}
-        onClick={() => onNavigate('wordManager')}
-      >
-        단어 관리
-      </button>
     </div>
   );
 }

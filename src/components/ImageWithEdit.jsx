@@ -17,24 +17,23 @@ const modalStyles = {
   box: {
     backgroundColor: '#FFF9F0',
     borderRadius: 28,
-    padding: 32,
-    width: 340,
-    maxWidth: '90vw',
+    padding: '4vh 4vw',
+    width: 'min(80vw, 360px)',
     boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 20,
+    gap: '2.5vh',
   },
   title: {
-    fontSize: 24,
+    fontSize: 'min(3vw, 24px)',
     fontWeight: 'bold',
     color: '#5D4E37',
     textAlign: 'center',
   },
   btnRow: {
     display: 'flex',
-    gap: 16,
+    gap: '2vw',
     width: '100%',
   },
   cancelBtn: {
@@ -44,7 +43,7 @@ const modalStyles = {
     border: 'none',
     backgroundColor: '#E0D5C7',
     color: '#5D4E37',
-    fontSize: 22,
+    fontSize: 'min(2.5vw, 22px)',
     fontWeight: 'bold',
     cursor: 'pointer',
   },
@@ -55,24 +54,23 @@ const modalStyles = {
     border: 'none',
     backgroundColor: '#BBDEFB',
     color: '#1565C0',
-    fontSize: 22,
+    fontSize: 'min(2.5vw, 22px)',
     fontWeight: 'bold',
     cursor: 'pointer',
   },
   toast: {
     position: 'fixed',
-    bottom: 60,
+    bottom: '5vh',
     left: '50%',
     transform: 'translateX(-50%)',
     backgroundColor: '#C8E6C9',
     color: '#2E7D32',
-    padding: '16px 32px',
+    padding: '2vh 4vw',
     borderRadius: 20,
-    fontSize: 22,
+    fontSize: 'min(2.5vw, 22px)',
     fontWeight: 'bold',
     boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
     zIndex: 300,
-    transition: 'opacity 0.3s ease',
   },
 };
 
@@ -93,9 +91,7 @@ function resizeImage(file, maxBytes = 500 * 1024) {
         }
         canvas.width = w;
         canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         let quality = 0.8;
         let result = canvas.toDataURL('image/jpeg', quality);
         while (result.length > maxBytes * 1.37 && quality > 0.2) {
@@ -110,21 +106,11 @@ function resizeImage(file, maxBytes = 500 * 1024) {
   });
 }
 
-/**
- * ImageWithEdit - 길게 누르면 사진 교체 가능한 이미지/이모지 컴포넌트
- *
- * @param {string} imageKey - localStorage 키
- * @param {string} fallbackEmoji - 이미지 없을 때 표시할 이모지
- * @param {number} size - 이미지 크기 (px)
- * @param {'circle'|'square'} shape - 모양
- * @param {string} label - 확인창에 표시할 이름 (예: "형", "엄마")
- * @param {function} onImageChange - 이미지 변경 후 콜백
- * @param {object} style - 추가 스타일
- */
 export default function ImageWithEdit({
   imageKey,
   fallbackEmoji,
   size = 80,
+  sizeCSS,
   shape = 'square',
   label = '',
   onImageChange,
@@ -135,35 +121,13 @@ export default function ImageWithEdit({
   const [showToast, setShowToast] = useState(false);
   const pressTimer = useRef(null);
   const fileRef = useRef(null);
-  const didLongPress = useRef(false);
 
-  // Sync if imageKey changes
   useEffect(() => {
     setCustomImg(getCustomImage(imageKey));
   }, [imageKey]);
 
-  const borderRadius = shape === 'circle' ? size / 2 : 12;
-
-  function startPress(e) {
-    // Prevent text selection on long press
-    e.preventDefault();
-    didLongPress.current = false;
-    pressTimer.current = setTimeout(() => {
-      didLongPress.current = true;
-      setShowModal(true);
-    }, 3000);
-  }
-
-  function endPress() {
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  }
-
-  function cancelPress() {
-    endPress();
-  }
+  const dim = sizeCSS || `${size}px`;
+  const borderRadius = shape === 'circle' ? '50%' : '12px';
 
   function handleChangeClick() {
     setShowModal(false);
@@ -180,87 +144,103 @@ export default function ImageWithEdit({
       setShowToast(true);
       setTimeout(() => setShowToast(false), 1500);
     });
-    // Reset so same file can be selected again
     e.target.value = '';
   }
 
-  const containerStyle = {
-    width: size,
-    height: size,
-    borderRadius,
-    overflow: 'hidden',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    cursor: 'default',
-    touchAction: 'manipulation',
-    ...style,
-  };
+  // Long press via touchstart/touchend — does NOT block click propagation
+  function handleTouchStart() {
+    pressTimer.current = setTimeout(() => {
+      pressTimer.current = null;
+      setShowModal(true);
+    }, 3000);
+  }
+
+  function handleTouchEnd() {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }
 
   return (
     <>
       <div
-        style={containerStyle}
-        onPointerDown={startPress}
-        onPointerUp={endPress}
-        onPointerCancel={cancelPress}
-        onPointerLeave={cancelPress}
-        onContextMenu={(e) => e.preventDefault()}
+        style={{
+          width: dim,
+          height: dim,
+          borderRadius,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          // pointerEvents pass through to parent — clicks bubble up
+          pointerEvents: 'none',
+          ...style,
+        }}
       >
         {customImg ? (
-          <img
-            src={customImg}
-            alt={label}
-            style={{
-              width: size,
-              height: size,
-              borderRadius,
-              objectFit: 'cover',
-              pointerEvents: 'none',
-            }}
-            draggable={false}
-          />
+          <img src={customImg} alt={label} style={{ width: '100%', height: '100%', borderRadius, objectFit: 'cover', pointerEvents: 'none' }} draggable={false} />
         ) : (
-          <span style={{ fontSize: size * 0.6, lineHeight: 1, pointerEvents: 'none' }}>
-            {fallbackEmoji}
-          </span>
+          <span style={{ fontSize: `calc(${dim} * 0.6)`, lineHeight: 1, pointerEvents: 'none' }}>{fallbackEmoji}</span>
         )}
       </div>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
+      {/* Invisible overlay that captures long press via touch events only.
+          touchstart/touchend do NOT prevent click from firing on the parent.
+          On desktop, this overlay has pointerEvents:none so mouse clicks pass through. */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // Let mouse/pointer clicks pass through to parent button
+          pointerEvents: 'none',
+        }}
+        // Touch events still fire even with pointerEvents:none on some browsers,
+        // but we need a different approach. Use the parent's onTouchStart instead.
       />
+
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
 
       {showModal && (
         <div style={modalStyles.overlay} onClick={() => setShowModal(false)}>
           <div style={modalStyles.box} onClick={(e) => e.stopPropagation()}>
-            <div style={modalStyles.title}>
-              {label} 사진을 바꿀까요?
-            </div>
+            <div style={modalStyles.title}>{label} 사진을 바꿀까요?</div>
             <div style={modalStyles.btnRow}>
-              <button style={modalStyles.cancelBtn} onClick={() => setShowModal(false)}>
-                취소
-              </button>
-              <button style={modalStyles.changeBtn} onClick={handleChangeClick}>
-                바꾸기
-              </button>
+              <button style={modalStyles.cancelBtn} onClick={() => setShowModal(false)}>취소</button>
+              <button style={modalStyles.changeBtn} onClick={handleChangeClick}>바꾸기</button>
             </div>
           </div>
         </div>
       )}
 
-      {showToast && (
-        <div style={modalStyles.toast}>
-          바뀌었어요!
-        </div>
-      )}
+      {showToast && <div style={modalStyles.toast}>바뀌었어요!</div>}
     </>
   );
+}
+
+// Hook for parent components to add long-press behavior
+export function useLongPress(callback, delay = 3000) {
+  const timer = useRef(null);
+
+  function onTouchStart() {
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      callback();
+    }, delay);
+  }
+
+  function onTouchEnd() {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }
+
+  return { onTouchStart, onTouchEnd, onTouchCancel: onTouchEnd };
 }
