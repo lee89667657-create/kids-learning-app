@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { addScore } from '../utils/storage';
 import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import useDragDrop from '../hooks/useDragDrop';
 
 const ITEMS = [
   { name: '책', emoji: '📖', needed: true },
@@ -31,42 +32,13 @@ export default function BagGame({ onBack }) {
   const [complete, setComplete] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [celebMode, setCelebMode] = useState(null);
-  const [dragging, setDragging] = useState(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const [overBag, setOverBag] = useState(false);
-  const cardOrigins = useRef({});
-  const bagRef = useRef(null);
 
-  useEffect(() => {
-    setTimeout(() => speak('학교 갈 때 필요한 것만 가방에 넣어요!'), 400);
-  }, []);
+  const { makeDragProps, makeDropProps, dragging, ghostStyle, containerProps, nearZone } = useDragDrop({
+    onDrop: (itemName, zoneId) => {
+      if (complete || packed.includes(itemName) || wrongItem) return 'ignore';
+      const item = ITEMS.find((i) => i.name === itemName);
+      if (!item) return 'ignore';
 
-  function isOverBag(x, y) {
-    if (!bagRef.current) return false;
-    const r = bagRef.current.getBoundingClientRect();
-    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-  }
-
-  function handlePointerDown(e, item) {
-    if (complete || packed.includes(item.name) || wrongItem) return;
-    e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);
-    const r = e.currentTarget.getBoundingClientRect();
-    cardOrigins.current[item.name] = { x: r.left, y: r.top };
-    setDragging(item.name); setDragPos({ x: e.clientX, y: e.clientY });
-  }
-
-  function handlePointerMove(e) {
-    if (!dragging) return; e.preventDefault();
-    setDragPos({ x: e.clientX, y: e.clientY });
-    setOverBag(isOverBag(e.clientX, e.clientY));
-  }
-
-  function handlePointerUp(e) {
-    if (!dragging) return; e.preventDefault();
-    const item = ITEMS.find((i) => i.name === dragging);
-    const over = isOverBag(e.clientX, e.clientY);
-
-    if (over && item) {
       if (item.needed) {
         const newPacked = [...packed, item.name];
         setPacked(newPacked);
@@ -76,64 +48,38 @@ export default function BagGame({ onBack }) {
         setTimeout(() => setCelebMode(null), 2200);
 
         if (newPacked.length === neededCount) {
-          setComplete(true);
-          setFeedback('준비 완료!');
+          setComplete(true); setFeedback('준비 완료!');
           setTimeout(() => { setCelebMode('mega'); playMegaFanfare(); speakComplete(); }, 2300);
           setTimeout(() => setCelebMode(null), 5500);
         }
+        return 'correct';
       } else {
         setWrongItem(item.name);
         setFeedback(`${item.name}은 학교에 안 가져가요~`);
         speakWrong();
         setTimeout(() => { setWrongItem(null); setFeedback(''); }, 1500);
+        return 'wrong';
       }
-    }
+    },
+  });
 
-    setDragging(null); setOverBag(false);
-  }
+  useEffect(() => {
+    setTimeout(() => speak('학교 갈 때 필요한 것만 가방에 넣어요!'), 400);
+  }, []);
 
   function handleReset() {
     setPacked([]); setWrongItem(null); setComplete(false); setFeedback('');
     setTimeout(() => speak('학교 갈 때 필요한 것만 가방에 넣어요!'), 300);
   }
 
-  function cardStyle(item) {
-    const isPacked = packed.includes(item.name);
-    const isWrong = wrongItem === item.name;
-    const s = {
-      width: 'min(18vw, 18vh)', height: 'min(18vw, 18vh)',
-      borderRadius: 'min(2.5vw, 20px)',
-      border: isPacked ? '3px solid #A5D6A7' : '3px solid transparent',
-      backgroundColor: isPacked ? '#E8F5E9' : '#FFFFFF',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5vh',
-      cursor: isPacked ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-      opacity: isPacked ? 0.4 : 1,
-      transition: dragging === item.name ? 'none' : 'all 0.3s ease',
-      animation: isWrong ? 'shake 0.4s ease-in-out' : 'none',
-      position: 'relative',
-      zIndex: dragging === item.name ? 100 : 1,
-    };
-    if (dragging === item.name) {
-      const o = cardOrigins.current[item.name];
-      if (o) {
-        s.transform = `translate(${dragPos.x - o.x - 45}px, ${dragPos.y - o.y - 45}px) scale(1.1)`;
-        s.boxShadow = '0 10px 28px rgba(0,0,0,0.2)';
-        s.cursor = 'grabbing';
-      }
-    }
-    return s;
-  }
+  const bagDrop = makeDropProps('bag');
+  const isOverBag = nearZone === 'bag';
 
   return (
     <div style={{
       height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
-    }}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-    >
+    }} {...containerProps}>
       <CelebrationOverlay mode={celebMode} score={packed.length} onDone={() => setCelebMode(null)} />
 
       {/* Header */}
@@ -151,13 +97,13 @@ export default function BagGame({ onBack }) {
       {/* Main: 2-column */}
       <div style={{ flex: 1, display: 'flex', gap: '2vw', minHeight: 0 }}>
         {/* Left: Bag (drop zone) */}
-        <div ref={bagRef} style={{
+        <div ref={bagDrop.ref} style={{
           flex: 1,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          backgroundColor: overBag ? '#EDE7F6' : '#F3E5F5',
+          backgroundColor: isOverBag ? '#EDE7F6' : '#F3E5F5',
           borderRadius: 'min(3vw, 24px)',
-          border: overBag ? '4px dashed #AB47BC' : complete ? '4px solid #A5D6A7' : '4px dashed #CE93D8',
-          boxShadow: overBag ? '0 0 30px rgba(171,71,188,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
+          border: isOverBag ? '4px dashed #AB47BC' : complete ? '4px solid #A5D6A7' : '4px dashed #CE93D8',
+          boxShadow: isOverBag ? '0 0 30px rgba(171,71,188,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
           transition: 'all 0.3s ease',
           gap: '2vh',
           padding: '2vh',
@@ -210,15 +156,37 @@ export default function BagGame({ onBack }) {
           gap: 'min(1.2vw, 10px)',
           alignContent: 'center',
         }}>
-          {shuffledItems.map((item) => (
-            <div key={item.name} style={cardStyle(item)}
-              onPointerDown={(e) => handlePointerDown(e, item)}>
-              <span style={{ fontSize: 'min(6vw, 44px)', lineHeight: 1, pointerEvents: 'none' }}>{item.emoji}</span>
-              <span style={{ fontSize: 'min(2vw, 16px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{item.name}</span>
-            </div>
-          ))}
+          {shuffledItems.map((item) => {
+            const isPacked = packed.includes(item.name);
+            const isWrong = wrongItem === item.name;
+            const isDragged = dragging === item.name;
+            const dp = isPacked ? {} : makeDragProps(item.name);
+            return (
+              <div key={item.name} {...dp} style={{
+                ...(dp.style || {}),
+                width: 'min(18vw, 18vh)', height: 'min(18vw, 18vh)',
+                borderRadius: 'min(2.5vw, 20px)',
+                border: isPacked ? '3px solid #A5D6A7' : '3px solid transparent',
+                backgroundColor: isPacked ? '#E8F5E9' : '#FFFFFF',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5vh',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                opacity: isPacked ? 0.4 : isDragged ? 0.3 : 1,
+                animation: isWrong ? 'shake 0.4s ease-in-out' : 'none',
+                zIndex: isDragged ? 100 : 1,
+              }}>
+                <span style={{ fontSize: 'min(6vw, 44px)', lineHeight: 1, pointerEvents: 'none' }}>{item.emoji}</span>
+                <span style={{ fontSize: 'min(2vw, 16px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{item.name}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Ghost */}
+      {dragging && ghostStyle && (() => {
+        const item = ITEMS.find((i) => i.name === dragging);
+        return item ? <div style={{ ...ghostStyle, fontSize: 'min(10vw, 80px)', lineHeight: 1 }}>{item.emoji}</div> : null;
+      })()}
 
       {/* Feedback / Reset */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3vw', marginTop: '1vh', flexShrink: 0, minHeight: 'min(5vh, 40px)' }}>

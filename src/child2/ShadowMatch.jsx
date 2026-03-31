@@ -3,6 +3,7 @@ import { addScore } from '../utils/storage';
 import { speakCute as speak } from '../utils/tts';
 import CelebrationOverlay from './utils/CelebrationOverlay';
 import { speakPraise, speakWrong, speakComplete, playFanfare, playMegaFanfare } from './utils/celebration';
+import useDragDrop from '../hooks/useDragDrop';
 
 const ANIMALS = [
   { name: '강아지', emoji: '🐕' }, { name: '고양이', emoji: '🐱' },
@@ -138,12 +139,23 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
   const [celebMode, setCelebMode] = useState(null);
   const [matched, setMatched] = useState(false);
   const [wrongSnap, setWrongSnap] = useState(null);
-  const [dragging, setDragging] = useState(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const [nearShadow, setNearShadow] = useState(false);
   const [roundCount, setRoundCount] = useState(0);
-  const cardOrigins = useRef({});
-  const shadowRef = useRef(null);
+
+  const { makeDragProps, makeDropProps, dragging, dragPos, ghostStyle, containerProps, nearZone } = useDragDrop({
+    onDrop: (item, zoneId) => {
+      if (matched || wrongSnap) return 'ignore';
+      setTotal((t) => t + 1);
+      if (item === round.answer.name) {
+        setMatched(true); setScore((s) => s + 1);
+        addScore('child2', 'shadow', 1); playFanfare(); speakPraise();
+        setCelebMode('big');
+        return 'correct';
+      }
+      setWrongSnap(item); speakWrong();
+      setTimeout(() => setWrongSnap(null), 600);
+      return 'wrong';
+    },
+  });
 
   useEffect(() => { setTimeout(() => speak('동물을 그림자에 올려봐요!'), 400); }, []);
 
@@ -151,45 +163,61 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
     const c = roundCount + 1; setRoundCount(c);
     if (c >= 3) { speak('잘했어요! 이제 탈것 게임 해봐요!'); setTimeout(onComplete, 1500); return; }
     const r = pickRound(round.answer.name);
-    setRound(r); setMatched(false); setWrongSnap(null); setDragging(null); setNearShadow(false);
+    setRound(r); setMatched(false); setWrongSnap(null);
     setTimeout(() => speak('동물을 그림자에 올려봐요!'), 300);
   }, [round.answer.name, roundCount, onComplete]);
 
-  function isOver(x, y) { if (!shadowRef.current) return false; const r = shadowRef.current.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; }
-
-  function onDown(e, a) { if (matched || wrongSnap) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); const r = e.currentTarget.getBoundingClientRect(); cardOrigins.current[a.name] = { x: r.left, y: r.top }; setDragging(a.name); setDragPos({ x: e.clientX, y: e.clientY }); }
-  function onMove(e) { if (!dragging) return; e.preventDefault(); setDragPos({ x: e.clientX, y: e.clientY }); setNearShadow(isOver(e.clientX, e.clientY)); }
-  function onUp(e) {
-    if (!dragging) return; e.preventDefault();
-    if (isOver(e.clientX, e.clientY)) {
-      const a = round.choices.find((x) => x.name === dragging); setTotal((t) => t + 1);
-      if (a?.name === round.answer.name) { setMatched(true); setScore((s) => s + 1); addScore('child2', 'shadow', 1); playFanfare(); speakPraise(); setCelebMode('big'); }
-      else { setWrongSnap(a?.name); speakWrong(); setTimeout(() => setWrongSnap(null), 600); }
-    }
-    setDragging(null); setNearShadow(false);
-  }
-
-  function cs(a) {
-    const s = { width: 'min(24vw,24vh)', height: 'min(13vw,13vh)', borderRadius: 'min(2.5vw,20px)', border: '4px solid transparent', backgroundColor: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5vw', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', cursor: 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === a.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === a.name ? 100 : 1 };
-    if (dragging === a.name) { const o = cardOrigins.current[a.name]; if (o) { s.transform = `translate(${dragPos.x-o.x-60}px,${dragPos.y-o.y-40}px) scale(1.1)`; s.boxShadow = '0 12px 32px rgba(0,0,0,0.2)'; } }
-    if (wrongSnap === a.name) s.animation = 'shake 0.4s ease-in-out';
-    if (matched && a.name === round.answer.name) s.opacity = 0.3;
-    return s;
-  }
+  const drop = makeDropProps('shadow');
+  const isNear = nearZone === 'shadow';
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 0 }} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 0 }} {...containerProps}>
       <CelebrationOverlay mode={celebMode} score={score} onDone={() => { setCelebMode(null); nextRound(); }} />
       <div style={{ fontSize: 'min(3.5vw,32px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1.5vh', flexShrink: 0 }}>{matched ? '맞았어요! 🎉' : '동물을 그림자에 올려봐요!'}</div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5vw', minHeight: 0 }}>
-        <div ref={shadowRef} style={{ width: 'min(35vw,35vh)', height: 'min(35vw,35vh)', backgroundColor: nearShadow ? '#FFF8E1' : '#F5F0E8', borderRadius: 'min(3vw,28px)', border: nearShadow ? '4px dashed #FFA726' : matched ? '4px solid #A5D6A7' : '4px dashed #D4C5B0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: nearShadow ? '0 0 30px rgba(255,224,130,0.7)' : '0 4px 16px rgba(0,0,0,0.08)', transition: 'all 0.3s ease' }}>
+        {/* Drop zone */}
+        <div ref={drop.ref} style={{
+          width: 'min(35vw,35vh)', height: 'min(35vw,35vh)',
+          backgroundColor: isNear ? '#FFF8E1' : '#F5F0E8', borderRadius: 'min(3vw,28px)',
+          border: isNear ? '4px dashed #FFA726' : matched ? '4px solid #A5D6A7' : '4px dashed #D4C5B0',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          boxShadow: isNear ? '0 0 30px rgba(255,224,130,0.7)' : '0 4px 16px rgba(0,0,0,0.08)',
+          transition: 'all 0.3s ease',
+        }}>
           {matched ? <span style={{ fontSize: 'min(20vw,20vh)', lineHeight: 1, animation: 'snapIn 0.4s ease-out' }}>{round.answer.emoji}</span>
-            : <><span style={{ fontSize: 'min(20vw,20vh)', filter: 'brightness(0)', opacity: nearShadow ? 0.4 : 0.8, lineHeight: 1, transition: 'opacity 0.2s' }}>{round.answer.emoji}</span><div style={{ fontSize: 'min(1.8vw,14px)', color: '#B0A090', marginTop: '1vh' }}>여기에 올려봐요!</div></>}
+            : <><span style={{ fontSize: 'min(20vw,20vh)', filter: 'brightness(0)', opacity: isNear ? 0.4 : 0.8, lineHeight: 1, transition: 'opacity 0.2s' }}>{round.answer.emoji}</span>
+              <div style={{ fontSize: 'min(1.8vw,14px)', color: '#B0A090', marginTop: '1vh' }}>여기에 올려봐요!</div></>}
         </div>
+        {/* Draggable cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-          {round.choices.map((a) => <div key={a.name} style={cs(a)} onPointerDown={(e) => onDown(e, a)}><span style={{ fontSize: 'min(7vw,56px)', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span><span style={{ fontSize: 'min(2.5vw,22px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span></div>)}
+          {round.choices.map((a) => {
+            const dp = makeDragProps(a.name);
+            const isDragged = dragging === a.name;
+            return (
+              <div key={a.name} {...dp} style={{
+                ...dp.style,
+                width: 'min(24vw,24vh)', height: 'min(13vw,13vh)', borderRadius: 'min(2.5vw,20px)',
+                border: '4px solid transparent', backgroundColor: '#FFF',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5vw',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                zIndex: isDragged ? 100 : 1,
+                animation: wrongSnap === a.name ? 'shake 0.4s ease-in-out' : 'none',
+                opacity: (matched && a.name === round.answer.name) ? 0.3 : isDragged ? 0.3 : 1,
+              }}>
+                <span style={{ fontSize: 'min(7vw,56px)', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
+                <span style={{ fontSize: 'min(2.5vw,22px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
+      {/* Ghost */}
+      {dragging && ghostStyle && (() => {
+        const animal = round.choices.find((a) => a.name === dragging);
+        return animal ? (
+          <div style={{ ...ghostStyle, fontSize: 'min(10vw,80px)', lineHeight: 1 }}>{animal.emoji}</div>
+        ) : null;
+      })()}
     </div>
   );
 }
