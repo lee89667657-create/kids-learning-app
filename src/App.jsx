@@ -13,8 +13,18 @@ import ShadowMatch from './child2/ShadowMatch';
 import PathGame from './child2/PathGame';
 import BagGame from './child2/BagGame';
 
+function unlockAudio() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  ctx.resume().then(() => ctx.close());
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance('');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  }
+}
+
 export default function App() {
-  const [screen, setScreen] = useState('profile');
+  const [screen, setScreen] = useState('start');
 
   function handleProfileSelect(profile) {
     if (profile === 'child1') setScreen('child1Home');
@@ -31,8 +41,32 @@ export default function App() {
     setScreen(map[activity] || 'child2Home');
   }
 
+  function handleStart() {
+    unlockAudio();
+    setScreen('profile');
+  }
+
   return (
     <div style={{ height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: '#FFF9F0' }}>
+      {screen === 'start' && (
+        <div style={{
+          height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF9F0', gap: '4vh',
+        }}>
+          <div style={{ fontSize: '6vw', fontWeight: 'bold', color: '#5D4E37' }}>
+            같이 놀자!
+          </div>
+          <button onClick={handleStart} style={{
+            width: '50vw', height: '18vh', borderRadius: '3vw', border: 'none',
+            backgroundColor: '#FFE082', fontSize: '5vw', fontWeight: 'bold',
+            color: '#5D4E37', cursor: 'pointer',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2vw',
+          }}>
+            🌟 시작하기
+          </button>
+        </div>
+      )}
       {screen === 'profile' && <ProfileSelect onSelect={handleProfileSelect} />}
 
       {/* Child 1 screens */}

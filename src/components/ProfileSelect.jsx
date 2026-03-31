@@ -114,7 +114,7 @@ export default function ProfileSelect({ onSelect }) {
       padding: '2vh 2vw',
       overflow: 'hidden',
     }}>
-      <div style={{ fontSize: 'min(5vw, 5vh)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '5vh' }}>
+      <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37', marginBottom: '5vh' }}>
         누구야?
       </div>
       <div style={{ display: 'flex', gap: '4vw', justifyContent: 'center' }}>

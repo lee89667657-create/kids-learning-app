@@ -186,8 +186,8 @@ export default function Child2Home({ onNavigate, onBack }) {
     }
   }, [phase, progress]);
 
-  const machineW = 'min(50vw, 50vh)';
-  const machineH = 'min(65vw, 65vh)';
+  const machineW = '60vw';
+  const machineH = '80vh';
 
   // Progress arc for circular indicator
   const arcRadius = 22;
@@ -206,7 +206,7 @@ export default function Child2Home({ onNavigate, onBack }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: 'min(4vw, 36px)', fontWeight: 'bold', color: '#5D4E37' }}>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>
           {phase === 'idle' ? '돌려봐요! 🎰' : phase === 'mixing' ? '섞이는 중...' : phase === 'dispensed' ? '짠! 🎉' : ''}
         </div>
         <div style={{ width: '8vw' }} />

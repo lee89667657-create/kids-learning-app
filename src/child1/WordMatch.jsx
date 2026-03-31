@@ -100,7 +100,7 @@ export default function WordMatch({ onBack }) {
           borderRadius: 16,
           color: '#5D4E37',
         }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>🗣️ 단어 듣기</div>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>🗣️ 단어 듣기</div>
         <div style={{ width: '8vw' }} />
       </div>
 
@@ -140,13 +140,15 @@ export default function WordMatch({ onBack }) {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gridTemplateRows: '1fr 1fr',
-        gap: 'min(2vw, 20px)',
-        width: 'min(65vh, 80vw)',
-        maxHeight: '50vh',
+        gap: '2vw',
+        width: '88vw',
+        maxHeight: '60vh',
       }}>
         {choices.map((w) => (
           <button key={w.word} style={{
-            borderRadius: 'min(3vw, 28px)',
+            width: '42vw',
+            height: '38vh',
+            borderRadius: '2vw',
             border: `4px solid ${cardBorder(w)}`,
             backgroundColor: cardBg(w),
             cursor: 'pointer',
@@ -165,13 +167,13 @@ export default function WordMatch({ onBack }) {
               imageKey={w.word}
               fallbackEmoji={w.emoji}
               size={80}
-              sizeCSS="min(8vw, 8vh)"
+              sizeCSS="10vw"
               shape="square"
               label={w.word}
               onImageChange={() => setImgVersion((v) => v + 1)}
               style={{ borderRadius: 12 }}
             />
-            <span style={{ fontSize: 'min(2.5vw, 22px)', fontWeight: 'bold', color: '#5D4E37' }}>{w.word}</span>
+            <span style={{ fontSize: '2.5vw', fontWeight: 'bold', color: '#5D4E37' }}>{w.word}</span>
           </button>
         ))}
       </div>

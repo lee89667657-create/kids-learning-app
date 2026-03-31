@@ -255,8 +255,8 @@ export default function CompareGame({ onBack }) {
     );
   }
 
-  const cardW = 'min(35vw, 35vh)';
-  const cardH = 'min(35vw, 35vh)';
+  const cardW = '40vw';
+  const cardH = '45vh';
 
   function cardStyle(side) {
     let border = '4px solid transparent';

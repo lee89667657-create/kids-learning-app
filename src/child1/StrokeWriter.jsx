@@ -97,11 +97,10 @@ const actionBtnStyle = (bg, color) => ({
   minHeight: 'min(6vh, 48px)',
 });
 
-const canvasCSSSize = 'min(50vh, 55vw)';
 const canvasStyle = {
-  width: canvasCSSSize,
-  height: canvasCSSSize,
-  borderRadius: 24,
+  width: '80vw',
+  height: '65vh',
+  borderRadius: '2vw',
   border: '3px solid #E0D5C7',
   backgroundColor: '#FFFEF9',
   touchAction: 'none',
@@ -374,7 +373,7 @@ export default function StrokeWriter({ onBack }) {
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>
           ← 뒤로
         </button>
-        <div style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>✏️ 한글 쓰기</div>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>✏️ 한글 쓰기</div>
         <div style={{ width: '8vw' }} />
       </div>
 

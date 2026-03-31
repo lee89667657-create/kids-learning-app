@@ -71,7 +71,7 @@ export default function NumberGame({ onBack }) {
           borderRadius: 16,
           color: '#5D4E37',
         }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: 'min(3.5vw, 32px)', fontWeight: 'bold', color: '#5D4E37' }}>🔢 숫자놀이</div>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>🔢 숫자놀이</div>
         <div style={{ width: '8vw' }} />
       </div>
 
@@ -126,9 +126,11 @@ export default function NumberGame({ onBack }) {
         }}>
           {shuffled.map((num) => (
             <button key={num} style={{
-              borderRadius: 'min(2.5vw, 24px)',
+              width: '16vw',
+              height: '16vw',
+              borderRadius: '2vw',
               border: '3px solid transparent',
-              fontSize: 'min(4vw, 36px)',
+              fontSize: '5vw',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',

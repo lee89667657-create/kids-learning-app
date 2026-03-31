@@ -179,7 +179,7 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5vw', minHeight: 0 }}>
         {/* Drop zone */}
         <div ref={drop.ref} style={{
-          width: 'min(35vw,35vh)', height: 'min(35vw,35vh)',
+          width: '35vw', height: '35vw',
           backgroundColor: isNear ? '#FFF8E1' : '#F5F0E8', borderRadius: 'min(3vw,28px)',
           border: isNear ? '4px dashed #FFA726' : matched ? '4px solid #A5D6A7' : '4px dashed #D4C5B0',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -198,7 +198,7 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
             return (
               <div key={a.name} {...dp} style={{
                 ...dp.style,
-                width: 'min(24vw,24vh)', height: 'min(13vw,13vh)', borderRadius: 'min(2.5vw,20px)',
+                width: '20vw', height: '20vw', borderRadius: '2vw',
                 border: '4px solid transparent', backgroundColor: '#FFF',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5vw',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
@@ -302,15 +302,15 @@ function VehicleGame({ score, total, setScore, setTotal }) {
 
   function cardStyle(animal) {
     const placed = filled.some((fi) => round.seats[fi]?.name === animal.name);
-    const s = { width: 'min(13vw,13vh)', height: 'min(13vw,13vh)', borderRadius: 'min(2vw,16px)', border: '3px solid transparent', backgroundColor: '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh', boxShadow: '0 3px 10px rgba(0,0,0,0.06)', cursor: placed ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === animal.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === animal.name ? 100 : 1, opacity: placed ? 0.3 : 1 };
+    const s = { width: '20vw', height: '20vw', borderRadius: '2vw', border: '3px solid transparent', backgroundColor: '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh', boxShadow: '0 3px 10px rgba(0,0,0,0.06)', cursor: placed ? 'default' : 'grab', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', position: 'relative', transition: dragging === animal.name ? 'none' : 'transform 0.3s ease, opacity 0.3s ease', zIndex: dragging === animal.name ? 100 : 1, opacity: placed ? 0.3 : 1 };
     if (dragging === animal.name) { const o = cardOrigins.current[animal.name]; if (o) { s.transform = `translate(${dragPos.x-o.x-35}px,${dragPos.y-o.y-35}px) scale(1.1)`; s.boxShadow = '0 10px 28px rgba(0,0,0,0.2)'; } }
     if (wrongSnap === animal.name) s.animation = 'shake 0.4s ease-in-out';
     return s;
   }
 
   const isRocket = v.id === 'rocket';
-  const vehicleW = isRocket ? 'min(25vw, 45vh)' : 'min(70vw, 50vh)';
-  const vehicleH = isRocket ? 'min(50vw, 60vh)' : 'min(28vw, 22vh)';
+  const vehicleW = isRocket ? '40vw' : '80vw';
+  const vehicleH = isRocket ? '60vh' : '40vh';
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 0 }}

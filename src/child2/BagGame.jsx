@@ -90,7 +90,7 @@ export default function BagGame({ onBack }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw, 28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: 'min(3vw, 28px)', fontWeight: 'bold', color: '#5D4E37' }}>🎒 가방 채우기</div>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>🎒 가방 채우기</div>
         <div style={{ width: '8vw' }} />
       </div>
 
@@ -103,10 +103,11 @@ export default function BagGame({ onBack }) {
       <div style={{ flex: 1, display: 'flex', gap: '2vw', minHeight: 0 }}>
         {/* Left: Bag (drop zone) */}
         <div ref={bagDrop.ref} style={{
-          flex: 1,
+          width: '48vw',
+          height: '90vh',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           backgroundColor: isOverBag ? '#EDE7F6' : '#F3E5F5',
-          borderRadius: 'min(3vw, 24px)',
+          borderRadius: '2vw',
           border: isOverBag ? '4px dashed #AB47BC' : complete ? '4px solid #A5D6A7' : '4px dashed #CE93D8',
           boxShadow: isOverBag ? '0 0 30px rgba(171,71,188,0.3)' : '0 4px 16px rgba(0,0,0,0.06)',
           transition: 'all 0.3s ease',
@@ -169,8 +170,8 @@ export default function BagGame({ onBack }) {
             return (
               <div key={item.name} {...dp} style={{
                 ...(dp.style || {}),
-                width: 'min(18vw, 18vh)', height: 'min(18vw, 18vh)',
-                borderRadius: 'min(2.5vw, 20px)',
+                width: '20vw', height: '20vw',
+                borderRadius: '2vw',
                 border: isPacked ? '3px solid #A5D6A7' : '3px solid transparent',
                 backgroundColor: isPacked ? '#E8F5E9' : '#FFFFFF',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5vh',

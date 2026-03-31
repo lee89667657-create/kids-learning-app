@@ -28,17 +28,17 @@ export default function Child1Home({ onNavigate, onBack }) {
         flexShrink: 0,
       }}>
         <button style={{
-          fontSize: 'min(3vw, 28px)',
+          fontSize: '3vw',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
-          padding: '1vh 1vw',
-          borderRadius: 16,
+          padding: '2vw',
+          borderRadius: '2vw',
           color: '#5D4E37',
         }} onClick={onBack}>
           ← 뒤로
         </button>
-        <div style={{ fontSize: 'min(4vw, 36px)', fontWeight: 'bold', color: '#5D4E37' }}>
+        <div style={{ fontSize: '5vw', fontWeight: 'bold', color: '#5D4E37' }}>
           뭐 할까?
         </div>
         <div style={{ width: '8vw' }} />
@@ -58,16 +58,18 @@ export default function Child1Home({ onNavigate, onBack }) {
           <button
             key={act.id}
             style={{
-              borderRadius: 'min(3vw, 28px)',
+              width: '42vw',
+              height: '28vh',
+              borderRadius: '2vw',
               border: 'none',
-              fontSize: 'min(2.8vw, 26px)',
+              fontSize: '3.5vw',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '1vh',
+              gap: '2vw',
               backgroundColor: act.color,
               color: '#3E3E3E',
               transform: hovered === act.id ? 'scale(1.03)' : 'scale(1)',
@@ -78,7 +80,7 @@ export default function Child1Home({ onNavigate, onBack }) {
             onMouseLeave={() => setHovered(null)}
             onClick={() => onNavigate(act.id)}
           >
-            <span style={{ fontSize: 'min(6vw, 44px)' }}>{act.emoji}</span>
+            <span style={{ fontSize: '8vw' }}>{act.emoji}</span>
             <span>{act.label}</span>
           </button>
         ))}
