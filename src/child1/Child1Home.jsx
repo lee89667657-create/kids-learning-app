@@ -5,6 +5,7 @@ const activities = [
   { id: 'sound', emoji: '🎵', label: '소리패턴', color: '#BBDEFB' },
   { id: 'word', emoji: '🗣️', label: '단어 듣기', color: '#FFE0B2' },
   { id: 'stroke', emoji: '✏️', label: '한글 쓰기', color: '#E1BEE7' },
+  { id: 'handPoint', emoji: '✋', label: '손으로 맞추기', color: '#B2EBF2' },
 ];
 
 export default function Child1Home({ onNavigate, onBack }) {
@@ -47,8 +48,8 @@ export default function Child1Home({ onNavigate, onBack }) {
         flex: 1,
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gridTemplateRows: '1fr 1fr',
-        gap: '2vh 2vw',
+        gridTemplateRows: '1fr 1fr 1fr',
+        gap: '1.5vh 2vw',
         maxWidth: '90vw',
         margin: '0 auto',
         width: '100%',
@@ -59,14 +60,14 @@ export default function Child1Home({ onNavigate, onBack }) {
             style={{
               borderRadius: 'min(3vw, 28px)',
               border: 'none',
-              fontSize: 'min(3vw, 28px)',
+              fontSize: 'min(2.8vw, 26px)',
               fontWeight: 'bold',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '1.5vh',
+              gap: '1vh',
               backgroundColor: act.color,
               color: '#3E3E3E',
               transform: hovered === act.id ? 'scale(1.03)' : 'scale(1)',
@@ -77,7 +78,7 @@ export default function Child1Home({ onNavigate, onBack }) {
             onMouseLeave={() => setHovered(null)}
             onClick={() => onNavigate(act.id)}
           >
-            <span style={{ fontSize: 'min(7vw, 52px)' }}>{act.emoji}</span>
+            <span style={{ fontSize: 'min(6vw, 44px)' }}>{act.emoji}</span>
             <span>{act.label}</span>
           </button>
         ))}
@@ -85,12 +86,12 @@ export default function Child1Home({ onNavigate, onBack }) {
 
       <button
         style={{
-          marginTop: '1.5vh',
-          padding: '1vh 2vw',
+          marginTop: '1vh',
+          padding: '0.8vh 2vw',
           borderRadius: 16,
           border: '2px solid #D4C5B0',
           backgroundColor: '#FFF3E0',
-          fontSize: 'min(2vw, 16px)',
+          fontSize: 'min(1.8vw, 14px)',
           color: '#7A6B5D',
           cursor: 'pointer',
           alignSelf: 'center',
