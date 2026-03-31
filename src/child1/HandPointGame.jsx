@@ -218,7 +218,7 @@ export default function HandPointGame({ onBack }) {
 
   return (
     <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column',
+      height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
       backgroundColor: '#FFF9F0', overflow: 'hidden', position: 'relative',
     }}>
       {/* Hidden video */}

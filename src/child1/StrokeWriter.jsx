@@ -361,7 +361,7 @@ export default function StrokeWriter({ onBack }) {
 
   return (
     <div style={{
-      height: '100vh',
+      height: '100vh', width: '100vw',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',

@@ -127,7 +127,7 @@ export default function BagGame({ onBack }) {
 
   return (
     <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column',
+      height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}
       onPointerMove={handlePointerMove}

@@ -226,7 +226,7 @@ export default function CompareGame({ onBack }) {
   if (showComplete) {
     return (
       <div style={{
-        height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden', gap: '3vh',
       }}>
         <CelebrationOverlay mode={celebMode} score={stars} onDone={() => setCelebMode(null)} />
@@ -300,7 +300,7 @@ export default function CompareGame({ onBack }) {
 
   return (
     <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center',
+      height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center',
       backgroundColor: '#FFF9F0', padding: '2vh 3vw', overflow: 'hidden',
     }}>
       <CelebrationOverlay mode={celebMode} score={stars} onDone={() => setCelebMode(null)} />
