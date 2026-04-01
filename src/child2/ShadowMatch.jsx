@@ -42,7 +42,7 @@ const VEHICLES = [
     departTTS: '출발~! 부릉부릉!',
     departTransform: 'translateX(120vw)',
     departDuration: '2s', sfx: 'honk',
-    svgW: '90vw', svgH: '45vh',
+    svgW: '85vw', svgH: '50vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
       <svg viewBox="0 0 400 200" style={{ width: '100%', height: '100%' }}>
         {/* Body - taller */}
@@ -75,7 +75,7 @@ const VEHICLES = [
     departTTS: '출항~! 둥실둥실!',
     departTransform: 'translateX(120vw)',
     departDuration: '3s', sfx: 'foghorn',
-    svgW: '90vw', svgH: '45vh',
+    svgW: '85vw', svgH: '50vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
       <svg viewBox="0 0 480 240" style={{ width: '100%', height: '100%' }}>
         {/* Water */}
@@ -110,7 +110,7 @@ const VEHICLES = [
     departTTS: '발사~!',
     departTransform: 'translateY(-120vh) rotate(-10deg)',
     departDuration: '2s', sfx: 'rocket',
-    svgW: '50vw', svgH: '45vh',
+    svgW: '40vw', svgH: '50vh',
     svg: (seats, filled, nearSeat, seatRefs, driving) => (
       <svg viewBox="0 0 220 440" style={{ width: '100%', height: '100%' }}>
         {/* Flame */}
@@ -357,14 +357,14 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
       {/* Header: 10vh */}
       <div style={{
         height: '10vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, position: 'relative', zIndex: 10,
+        flexShrink: 0, position: 'relative', zIndex: 10, padding: '0 2vw',
       }}>
         <button style={{
-          position: 'absolute', left: '3vw', fontSize: '3vw', background: 'none', border: 'none',
-          cursor: 'pointer', padding: '2vw', color: isRocket ? '#E0E0E0' : '#5D4E37',
+          position: 'absolute', left: '2vw', fontSize: '3vw', background: 'none', border: 'none',
+          cursor: 'pointer', padding: '1vw', color: isRocket ? '#E0E0E0' : '#5D4E37',
         }} onClick={onBack}>← 뒤로</button>
-        <div style={{ fontSize: '4vw', fontWeight: 'bold', color: isRocket ? '#E0E0E0' : '#5D4E37', display: 'flex', gap: '2vw', alignItems: 'center' }}>
-          {countdown != null ? <span style={{ fontSize: '8vw' }}>{countdown}</span>
+        <div style={{ fontSize: '3vw', fontWeight: 'bold', color: isRocket ? '#E0E0E0' : '#5D4E37', display: 'flex', gap: '2vw', alignItems: 'center' }}>
+          {countdown != null ? <span style={{ fontSize: '6vw' }}>{countdown}</span>
             : allFilled ? <span>{v.emoji} 출발~!</span>
             : <span>{v.emoji} {nextIdx + 1}번 자리에 태워봐요!</span>}
           <span style={{ fontSize: '2.5vw', color: isRocket ? '#9E9E9E' : '#7A6B5D' }}>
@@ -373,13 +373,13 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
         </div>
       </div>
 
-      {/* Vehicle area: 50vh */}
+      {/* Vehicle area: 52vh */}
       <div style={{
-        height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, position: 'relative', zIndex: 5, padding: 0,
+        height: '52vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, position: 'relative', zIndex: 5, padding: '0 2vw',
       }}>
         <div style={{
-          width: v.svgW, height: v.svgH,
+          width: v.svgW, height: v.svgH, maxHeight: '52vh',
           transition: `transform ${v.departDuration} ease-in`,
           transform: departing ? v.departTransform : 'none',
         }}>
@@ -387,22 +387,22 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
         </div>
       </div>
 
-      {/* Cards area: 40vh */}
+      {/* Cards area: 35vh */}
       <div style={{
-        height: '40vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, position: 'relative', zIndex: 10,
+        height: '35vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, position: 'relative', zIndex: 10, padding: '0 2vw',
         backgroundColor: isRocket ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(4px)', padding: 0,
+        backdropFilter: 'blur(4px)',
       }}>
-        <div style={{ display: 'flex', gap: '2vw', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2vw', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           {round.cards.map((a) => {
             const placed = filled.some((fi) => round.seats[fi]?.name === a.name);
             const isDragged = dragging === a.name;
             return <div key={a.name} style={{
-              width: '22vw', height: '22vw', borderRadius: '2vw',
+              width: '20vw', height: '28vh', borderRadius: '2vw',
               border: '3px solid transparent',
               backgroundColor: isRocket ? 'rgba(255,255,255,0.9)' : '#FFF',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.3vh',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5vh',
               boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
               cursor: placed ? 'default' : 'grab',
               touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none',
@@ -415,8 +415,8 @@ function VehicleGame({ score, total, setScore, setTotal, onBack }) {
               onPointerUp={handleUp}
               onPointerCancel={handleUp}
             >
-              <span style={{ fontSize: '10vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
-              <span style={{ fontSize: '2.5vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
+              <span style={{ fontSize: '8vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
+              <span style={{ fontSize: '2vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
             </div>;
           })}
         </div>
