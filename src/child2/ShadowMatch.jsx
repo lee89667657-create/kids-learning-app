@@ -180,45 +180,45 @@ function Stage1({ onComplete, score, total, setScore, setTotal }) {
   const isNear = nearZone === 'shadow';
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 0 }} {...containerProps}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '88vh', overflow: 'hidden' }} {...containerProps}>
       <CelebrationOverlay mode={celebMode} score={score} onDone={() => { setCelebMode(null); nextRound(); }} />
-      <div style={{ fontSize: 'min(3.5vw,32px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1.5vh', flexShrink: 0 }}>{matched ? '맞았어요! 🎉' : '동물을 그림자에 올려봐요!'}</div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5vw', minHeight: 0 }}>
-        {/* Drop zone */}
+      {/* 중앙 그림자 영역: 50vh */}
+      <div style={{ height: '50vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ fontSize: 'min(3.5vw,32px)', fontWeight: 'bold', color: '#5D4E37', marginBottom: '1.5vh' }}>{matched ? '맞았어요! 🎉' : '동물을 그림자에 올려봐요!'}</div>
         <div ref={drop.ref} style={{
-          width: '35vw', height: '35vw',
-          backgroundColor: isNear ? '#FFF8E1' : '#F5F0E8', borderRadius: 'min(3vw,28px)',
+          width: '30vw', height: '30vw',
+          backgroundColor: isNear ? '#FFF8E1' : '#EDEDED', borderRadius: 'min(3vw,28px)',
           border: isNear ? '4px dashed #FFA726' : matched ? '4px solid #A5D6A7' : '4px dashed #D4C5B0',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           boxShadow: isNear ? '0 0 30px rgba(255,224,130,0.7)' : '0 4px 16px rgba(0,0,0,0.08)',
           transition: 'all 0.3s ease',
         }}>
-          {matched ? <span style={{ fontSize: 'min(20vw,20vh)', lineHeight: 1, animation: 'snapIn 0.4s ease-out' }}>{round.answer.emoji}</span>
-            : <><span style={{ fontSize: 'min(20vw,20vh)', filter: 'brightness(0)', opacity: isNear ? 0.4 : 0.8, lineHeight: 1, transition: 'opacity 0.2s' }}>{round.answer.emoji}</span>
+          {matched ? <span style={{ fontSize: 'min(18vw,18vh)', lineHeight: 1, animation: 'snapIn 0.4s ease-out' }}>{round.answer.emoji}</span>
+            : <><span style={{ fontSize: 'min(18vw,18vh)', filter: 'brightness(0)', opacity: isNear ? 0.4 : 0.7, lineHeight: 1, transition: 'opacity 0.2s' }}>{round.answer.emoji}</span>
               <div style={{ fontSize: 'min(1.8vw,14px)', color: '#B0A090', marginTop: '1vh' }}>여기에 올려봐요!</div></>}
         </div>
-        {/* Draggable cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-          {round.choices.map((a) => {
-            const dp = makeDragProps(a.name);
-            const isDragged = dragging === a.name;
-            return (
-              <div key={a.name} {...dp} style={{
-                ...dp.style,
-                width: '20vw', height: '20vw', borderRadius: '2vw',
-                border: '4px solid transparent', backgroundColor: '#FFF',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5vw',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                zIndex: isDragged ? 100 : 1,
-                animation: wrongSnap === a.name ? 'shake 0.4s ease-in-out' : 'none',
-                opacity: (matched && a.name === round.answer.name) ? 0.3 : isDragged ? 0.3 : 1,
-              }}>
-                <span style={{ fontSize: 'min(7vw,56px)', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
-                <span style={{ fontSize: 'min(2.5vw,22px)', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
-              </div>
-            );
-          })}
-        </div>
+      </div>
+      {/* 하단 카드 영역: 35vh */}
+      <div style={{ height: '35vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3vw', flexShrink: 0 }}>
+        {round.choices.map((a) => {
+          const dp = makeDragProps(a.name);
+          const isDragged = dragging === a.name;
+          return (
+            <div key={a.name} {...dp} style={{
+              ...dp.style,
+              width: '25vw', height: '28vh', borderRadius: '2vw',
+              border: '3px solid #E0E0E0', backgroundColor: '#FFF',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1vh',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+              zIndex: isDragged ? 100 : 1,
+              animation: wrongSnap === a.name ? 'shake 0.4s ease-in-out' : 'none',
+              opacity: (matched && a.name === round.answer.name) ? 0.3 : isDragged ? 0.3 : 1,
+            }}>
+              <span style={{ fontSize: '10vw', lineHeight: 1, pointerEvents: 'none' }}>{a.emoji}</span>
+              <span style={{ fontSize: '2.5vw', fontWeight: 'bold', color: '#5D4E37', pointerEvents: 'none' }}>{a.name}</span>
+            </div>
+          );
+        })}
       </div>
       {/* Ghost */}
       {dragging && ghostStyle && (() => {
@@ -452,9 +452,10 @@ export default function ShadowMatch({ onBack }) {
   const bgColor = stage === 2 ? '#FFF9F0' : '#FFF9F0';
 
   return (
-    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: bgColor, padding: '2vh 3vw', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: bgColor, overflow: 'hidden' }}>
       <MuteButton />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1vh', flexShrink: 0 }}>
+      {/* 상단 타이틀/탭: 12vh */}
+      <div style={{ height: '12vh', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 3vw', flexShrink: 0 }}>
         <button style={{ fontSize: 'min(3vw,28px)', background: 'none', border: 'none', cursor: 'pointer', padding: '1vh 1vw', borderRadius: 16, color: '#5D4E37' }} onClick={onBack}>← 뒤로</button>
         <div style={{ display: 'flex', gap: '1vw', alignItems: 'center' }}>
           <button style={{ padding: '0.5vh 1.5vw', borderRadius: 14, fontSize: 'min(1.8vw,16px)', fontWeight: 'bold', cursor: 'pointer', border: '2px solid ' + (stage === 1 ? '#FFA726' : '#D4C5B0'), backgroundColor: stage === 1 ? '#FFE0B2' : '#FFF3E0', color: '#5D4E37' }} onClick={() => setStage(1)}>그림자</button>
